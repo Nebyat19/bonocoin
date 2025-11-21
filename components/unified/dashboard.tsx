@@ -166,8 +166,8 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
                     ← Back 
                   </button>
                 </div>
-                <div className="text-6xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">Become a Creator</h2>
+                <div className="text-4xl sm:text-6xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Become a Creator</h2>
                 <p className="text-muted-foreground mb-6">
                   Set up your creator profile to start receiving support from your audience
                 </p>

@@ -116,8 +116,8 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
           </Button>
         </div>
         <div className="text-center mb-8">
-          <div className="text-5xl font-bold mb-4 neon-glow">₿</div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Creator Profile</h1>
+          <div className="text-4xl sm:text-5xl font-bold mb-4 neon-glow">₿</div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Creator Profile</h1>
           <p className="text-muted-foreground text-sm">Set up your profile to start receiving support</p>
         </div>
 

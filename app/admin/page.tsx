@@ -48,8 +48,8 @@ export default function AdminPage() {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <div className="text-5xl font-bold mb-4 neon-glow">₿</div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Access</h1>
+            <div className="text-4xl sm:text-5xl font-bold mb-4 neon-glow">₿</div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Access</h1>
           </div>
 
           <button
@@ -73,14 +73,36 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       <AdminHeader />
-      <main className="max-w-6xl mx-auto p-4">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-4">
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-muted mb-6">
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="creators">Creators</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="withdrawals">Withdrawals</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-2 sm:mx-0 mb-6">
+            <TabsList className="inline-flex min-w-full rounded-lg bg-muted p-1 gap-2 sm:grid sm:grid-cols-4 sm:p-2">
+              <TabsTrigger
+                value="users"
+                className="px-4 py-2 text-sm font-semibold whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Users
+              </TabsTrigger>
+              <TabsTrigger
+                value="creators"
+                className="px-4 py-2 text-sm font-semibold whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Creators
+              </TabsTrigger>
+              <TabsTrigger
+                value="transactions"
+                className="px-4 py-2 text-sm font-semibold whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Transactions
+              </TabsTrigger>
+              <TabsTrigger
+                value="withdrawals"
+                className="px-4 py-2 text-sm font-semibold whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Withdrawals
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="users">
             <AdminUsers />

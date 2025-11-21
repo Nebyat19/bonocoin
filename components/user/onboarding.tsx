@@ -38,8 +38,8 @@ export default function UserOnboarding({ onSuccess }: UserOnboardingProps) {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="text-5xl font-bold mb-4 neon-glow">₿</div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Bonocoin</h1>
+          <div className="text-4xl sm:text-5xl font-bold mb-4 neon-glow">₿</div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Bonocoin</h1>
           <p className="text-muted-foreground text-sm">Support your favorite creators instantly</p>
         </div>
 

@@ -139,8 +139,8 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
               {creator.display_name?.charAt(0) || creator.handle?.replace("@", "").charAt(0) || "₿"}
             </span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-1">{creator.display_name || creator.handle || "Creator"}</h1>
-          <p className="text-muted-foreground text-sm mb-2">{creator.channel_username || "Channel not provided"}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{creator.display_name || creator.handle || "Creator"}</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mb-2">{creator.channel_username || "Channel not provided"}</p>
         </div>
       </div>
 

@@ -86,12 +86,12 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
         <div className="w-full max-w-md relative z-10">
           <div className="text-center mb-12 animate-fade-in">
             <div className="relative inline-block mb-6">
-              <div className="text-8xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
+              <div className="text-6xl sm:text-8xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
               <div className="absolute -top-2 -right-2">
                 <Sparkles className="w-8 h-8 text-primary animate-spin-slow" />
               </div>
             </div>
-            <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Welcome to Bonocoin
             </h1>
             <p className="text-muted-foreground text-lg">Support creators. Get rewarded. Be both.</p>
@@ -157,8 +157,8 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
             Back
           </Button>
           <div className="text-center mb-8">
-            <div className="text-6xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">Connect with Telegram</h2>
+            <div className="text-4xl sm:text-6xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Connect with Telegram</h2>
             <p className="text-muted-foreground">Secure login with your Telegram account</p>
           </div>
 
@@ -238,8 +238,8 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
             Back
           </Button>
           <div className="text-center mb-8">
-            <div className="text-6xl font-bold mb-4 neon-glow">₿</div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">Welcome!</h2>
+            <div className="text-4xl sm:text-6xl font-bold mb-4 neon-glow">₿</div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Welcome!</h2>
             <p className="text-muted-foreground">Would you like to set up a creator profile?</p>
           </div>
 
@@ -412,8 +412,8 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
             Back
           </Button>
           <div className="text-center mb-8">
-            <div className="text-6xl font-bold mb-4 neon-glow">₿</div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">Creator Profile</h2>
+            <div className="text-4xl sm:text-6xl font-bold mb-4 neon-glow">₿</div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Creator Profile</h2>
             <p className="text-muted-foreground">Set up your profile to start receiving support</p>
           </div>
 
