@@ -55,13 +55,13 @@ export default function CreatorTransactions() {
                     className={`p-2.5 rounded-lg border ${
                       tx.type === "received"
                         ? "bg-primary/15 border-primary/30"
-                        : "bg-accent/15 border-accent/30"
+                        : "bg-secondary/15 border-secondary/30"
                     }`}
                   >
                     {tx.type === "received" ? (
                       <ArrowDownLeft className="w-4 h-4 text-primary" />
                     ) : (
-                      <ArrowUpRight className="w-4 h-4 text-accent" />
+                      <ArrowUpRight className="w-4 h-4 text-secondary" />
                     )}
                   </div>
                   <div>
@@ -75,7 +75,7 @@ export default function CreatorTransactions() {
                 </div>
                 <p
                   className={`font-bold ${
-                    tx.type === "received" ? "text-primary" : "text-accent"
+                    tx.type === "received" ? "text-primary" : "text-secondary"
                   }`}
                 >
                   {tx.type === "received" ? "+" : "-"} {tx.amount} BONO

@@ -137,7 +137,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
             <p className="text-xs text-muted-foreground mt-1">
               Choose a unique handle (e.g. @techcreator). This cannot be changed later.
             </p>
-            {handleError && <p className="text-xs text-destructive mt-1">{handleError}</p>}
+            {handleError && <p className="text-xs text-primary mt-1">{handleError}</p>}
           </div>
 
           <div>
@@ -200,7 +200,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
                       onClick={() => handleRemoveLink(index)}
                       variant="ghost"
                       size="icon"
-                      className="h-10 w-10 text-destructive hover:text-destructive"
+                      className="h-10 w-10 text-primary hover:text-primary"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -220,7 +220,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
           {isLoading ? "Setting up..." : "Create Creator Profile"}
         </Button>
 
-        {formError && <p className="text-sm text-destructive text-center mt-3">{formError}</p>}
+        {formError && <p className="text-sm text-primary text-center mt-3">{formError}</p>}
 
         <p className="text-xs text-muted-foreground text-center mt-4">
           Your unique support link will be generated after setup

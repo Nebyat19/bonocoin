@@ -61,15 +61,15 @@ export default function AdminWithdrawals() {
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-accent/20 to-accent/5 border-accent/30 p-6">
+        <Card className="bg-gradient-to-br from-secondary/20 to-secondary/5 border-secondary/30 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Total</p>
-              <p className="text-3xl font-bold text-accent">
+              <p className="text-3xl font-bold text-secondary">
                 {withdrawals.reduce((sum, w) => sum + w.amount, 0).toLocaleString()}
               </p>
             </div>
-            <CreditCard className="w-8 h-8 text-accent opacity-50" />
+            <CreditCard className="w-8 h-8 text-secondary opacity-50" />
           </div>
         </Card>
       </div>
@@ -87,12 +87,12 @@ export default function AdminWithdrawals() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <div
-                    className={`p-2 rounded-lg ${withdrawal.status === "approved" ? "bg-primary/10" : "bg-accent/10"}`}
+                    className={`p-2 rounded-lg ${withdrawal.status === "approved" ? "bg-primary/10" : "bg-secondary/10"}`}
                   >
                     {withdrawal.status === "approved" ? (
                       <CheckCircle className="w-5 h-5 text-primary" />
                     ) : (
-                      <Clock className="w-5 h-5 text-accent" />
+                      <Clock className="w-5 h-5 text-secondary" />
                     )}
                   </div>
                   <div>

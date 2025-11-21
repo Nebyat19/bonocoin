@@ -33,8 +33,8 @@ export default function QuickActions({ type }: { type: "user" | "creator" }) {
             <p className="text-xs text-muted-foreground">Get supporters</p>
           </Card>
           <Card className="card-gradient border-0 p-4 cursor-pointer hover:bg-card/80 transition">
-            <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center mb-2">
-              <Wallet className="w-5 h-5 text-accent" />
+            <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center mb-2">
+              <Wallet className="w-5 h-5 text-secondary" />
             </div>
             <p className="text-sm font-semibold">Withdraw</p>
             <p className="text-xs text-muted-foreground">Cash out</p>

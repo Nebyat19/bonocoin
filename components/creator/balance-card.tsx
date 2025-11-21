@@ -35,7 +35,7 @@ export default function CreatorBalance({ balance }: CreatorBalanceProps) {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Platform Fee</p>
-            <p className="font-bold text-accent text-lg">{(balance * 0.05).toFixed(2)}</p>
+            <p className="font-bold text-secondary text-lg">{(balance * 0.05).toFixed(2)}</p>
           </div>
         </div>
       </div>

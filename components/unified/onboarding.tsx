@@ -206,15 +206,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 animate-slide-in-left" style={{ animationDelay: "0.4s", animationFillMode: "both", opacity: 0 }}>
-              <div className="p-3 bg-accent/10 rounded-xl">
-                <Heart className="w-6 h-6 text-accent" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground mb-1">Dual Roles</h3>
-                <p className="text-sm text-muted-foreground">You can be both a supporter and a creator at the same time</p>
-              </div>
-            </div>
+        
           </Card>
 
           <Button
@@ -270,7 +262,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
           </Card>
 
           {authError && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">
               <AlertCircle className="h-4 w-4" />
               <span>{authError}</span>
             </div>
@@ -529,7 +521,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               <p className="text-xs text-muted-foreground mt-1">
                 Choose a short unique handle (e.g. @techcreator). Usernames must be unique and cannot be changed later.
               </p>
-              {usernameError && <p className="text-xs text-destructive mt-1">{usernameError}</p>}
+              {usernameError && <p className="text-xs text-primary mt-1">{usernameError}</p>}
             </div>
 
             <div>
@@ -600,7 +592,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
                         onClick={() => handleRemoveLink(index)}
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 text-destructive hover:text-destructive"
+                        className="h-10 w-10 text-primary hover:text-primary"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -611,7 +603,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
             </div>
           </Card>
 
-          {formError && <p className="text-sm text-destructive mb-4">{formError}</p>}
+          {formError && <p className="text-sm text-primary mb-4">{formError}</p>}
 
           <Button
             onClick={handleComplete}

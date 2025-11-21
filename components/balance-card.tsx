@@ -21,7 +21,7 @@ export default function BalanceCard({ creatorMode }: { creatorMode?: boolean }) 
           <div className="flex gap-2 mb-4">
             <div className="w-6 h-6 rounded-full bg-primary"></div>
             <div className="w-6 h-6 rounded-full bg-secondary"></div>
-            <div className="w-6 h-6 rounded-full bg-accent"></div>
+            <div className="w-6 h-6 rounded-full bg-secondary"></div>
           </div>
         )}
 

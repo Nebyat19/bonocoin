@@ -35,9 +35,9 @@ export default function WithdrawalRequestsList() {
       case "approved":
         return <CheckCircle className="w-5 h-5 text-primary" />
       case "rejected":
-        return <XCircle className="w-5 h-5 text-destructive" />
+        return <XCircle className="w-5 h-5 text-primary" />
       default:
-        return <Clock className="w-5 h-5 text-accent" />
+        return <Clock className="w-5 h-5 text-secondary" />
     }
   }
 
@@ -46,9 +46,9 @@ export default function WithdrawalRequestsList() {
       case "approved":
         return "bg-primary/10 border-primary/20"
       case "rejected":
-        return "bg-destructive/10 border-destructive/20"
+        return "bg-primary/10 border-primary/20"
       default:
-        return "bg-accent/10 border-accent/20"
+        return "bg-secondary/10 border-secondary/20"
     }
   }
 
@@ -92,8 +92,8 @@ export default function WithdrawalRequestsList() {
                       request.status === "approved"
                         ? "bg-primary/20 text-primary"
                         : request.status === "rejected"
-                          ? "bg-destructive/20 text-destructive"
-                          : "bg-accent/20 text-accent"
+                          ? "bg-primary/20 text-primary"
+                          : "bg-secondary/20 text-secondary"
                     }`}
                   >
                     {request.status.charAt(0).toUpperCase() + request.status.slice(1)}

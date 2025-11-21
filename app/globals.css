@@ -176,7 +176,7 @@
   box-shadow: 0 0 8px rgba(255, 20, 147, 0.1), inset 0 0 8px rgba(255, 20, 147, 0.03);
 }
 
-.neon-border-accent {
+.neon-border-secondary {
   border: 2px solid rgba(255, 255, 0, 0.3);
   box-shadow: 0 0 8px rgba(255, 255, 0, 0.08), inset 0 0 8px rgba(255, 255, 0, 0.02);
 }

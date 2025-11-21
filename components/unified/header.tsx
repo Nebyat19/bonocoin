@@ -86,7 +86,7 @@ export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="h-10 w-10 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive transition-all"
+            className="h-10 w-10 rounded-full bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-all"
           >
             <LogOut className="w-5 h-5" />
           </Button>

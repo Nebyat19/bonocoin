@@ -63,7 +63,7 @@ export default function UserOnboarding({ onSuccess }: UserOnboardingProps) {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="text-accent mt-1">
+            <div className="text-secondary mt-1">
               <Zap className="w-5 h-5" />
             </div>
             <div>

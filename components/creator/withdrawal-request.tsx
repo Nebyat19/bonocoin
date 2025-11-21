@@ -54,8 +54,8 @@ export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestP
     <div className="space-y-4">
       <Card className="bg-card border-border p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-accent/10 rounded-lg">
-            <CreditCard className="w-5 h-5 text-accent" />
+          <div className="p-2 bg-secondary/10 rounded-lg">
+            <CreditCard className="w-5 h-5 text-secondary" />
           </div>
           <div>
             <h3 className="font-semibold text-foreground">Request Withdrawal</h3>
@@ -123,12 +123,12 @@ export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestP
           !withdrawalData.account_holder ||
           Number.parseFloat(withdrawalData.amount) > availableBalance
         }
-        className="w-full bg-accent hover:bg-accent/90 h-12 text-base font-semibold text-accent-foreground"
+        className="w-full bg-secondary hover:bg-secondary/90 h-12 text-base font-semibold text-secondary-foreground"
       >
         {isLoading ? "Processing..." : "Submit Withdrawal Request"}
       </Button>
 
-      {errorMessage && <p className="text-sm text-destructive text-center">{errorMessage}</p>}
+      {errorMessage && <p className="text-sm text-primary text-center">{errorMessage}</p>}
 
       {submitted && (
         <Card className="bg-primary/10 border-primary/30 p-4">

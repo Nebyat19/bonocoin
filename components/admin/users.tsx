@@ -65,13 +65,13 @@ export default function AdminUsers() {
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-accent/20 to-accent/5 border-accent/30 p-6">
+        <Card className="bg-gradient-to-br from-secondary/20 to-secondary/5 border-secondary/30 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Total Spent</p>
-              <p className="text-3xl font-bold text-accent">{stats.totalSpent.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-secondary">{stats.totalSpent.toLocaleString()}</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-accent opacity-50" />
+            <TrendingUp className="w-8 h-8 text-secondary opacity-50" />
           </div>
         </Card>
       </div>

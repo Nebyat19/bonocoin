@@ -111,7 +111,7 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
               <Heart className="w-5 h-5 mr-2" />
               {isLoading ? "Sending..." : `Send ${supportAmount} BONO`}
             </Button>
-            {supportError && <p className="text-sm text-destructive text-center mt-2">{supportError}</p>}
+            {supportError && <p className="text-sm text-primary text-center mt-2">{supportError}</p>}
           </Card>
         </div>
       </div>
@@ -165,7 +165,7 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
         {creator.links && creator.links.length > 0 && (
           <Card className="bg-card border-border p-6">
             <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-              <LinkIcon className="w-5 h-5 text-accent" />
+              <LinkIcon className="w-5 h-5 text-secondary" />
               Links
             </h3>
             <div className="space-y-2">

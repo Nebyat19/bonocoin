@@ -139,7 +139,7 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
           <p className="text-xs text-muted-foreground">
           Use the creator&apos;s username (e.g. <span className="text-secondary font-semibold">@techcreator</span>) or their support link.
           </p>
-          {lookupError && <p className="text-xs text-destructive">{lookupError}</p>}
+          {lookupError && <p className="text-xs text-primary">{lookupError}</p>}
         </div>
 
         <Button
@@ -204,7 +204,7 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
                 Creators will see this name when you send support.
               </p>
             )}
-            {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
+            {nameError && <p className="text-xs text-primary mt-1">{nameError}</p>}
           </div>
 
           <div>

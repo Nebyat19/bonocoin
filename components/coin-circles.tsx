@@ -4,7 +4,7 @@ export default function CoinCircles() {
   const coins = [
     { color: "bg-primary", size: "w-12 h-12", label: "BONO", shadow: "glow-neon" },
     { color: "bg-secondary", size: "w-16 h-16", label: "PINK", shadow: "glow-pink" },
-    { color: "bg-accent", size: "w-14 h-14", label: "GOLD", shadow: "glow-yellow" },
+    { color: "bg-secondary", size: "w-14 h-14", label: "GOLD", shadow: "glow-yellow" },
   ]
 
   return (

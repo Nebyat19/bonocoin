@@ -69,13 +69,13 @@ export default function AdminTransactions() {
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-accent/20 to-accent/5 border-accent/30 p-6">
+        <Card className="bg-gradient-to-br from-secondary/20 to-secondary/5 border-secondary/30 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Admin Fees</p>
-              <p className="text-3xl font-bold text-accent">{stats.totalFees.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-secondary">{stats.totalFees.toFixed(2)}</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-accent opacity-50" />
+            <TrendingUp className="w-8 h-8 text-secondary opacity-50" />
           </div>
         </Card>
       </div>
@@ -101,7 +101,7 @@ export default function AdminTransactions() {
                   <td className="p-4 text-foreground text-xs">{tx.from_user}</td>
                   <td className="p-4 text-muted-foreground">{tx.to_creator}</td>
                   <td className="p-4 text-right text-primary font-semibold">{tx.amount}</td>
-                  <td className="p-4 text-right text-accent">{tx.admin_fee.toFixed(2)}</td>
+                  <td className="p-4 text-right text-secondary">{tx.admin_fee.toFixed(2)}</td>
                   <td className="p-4 text-muted-foreground text-xs">{new Date(tx.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}

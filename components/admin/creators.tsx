@@ -61,13 +61,13 @@ export default function AdminCreators() {
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-accent/20 to-accent/5 border-accent/30 p-6">
+        <Card className="bg-gradient-to-br from-secondary/20 to-secondary/5 border-secondary/30 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Total Supporters</p>
-              <p className="text-3xl font-bold text-accent">{stats.totalSupporters}</p>
+              <p className="text-3xl font-bold text-secondary">{stats.totalSupporters}</p>
             </div>
-            <Users className="w-8 h-8 text-accent opacity-50" />
+            <Users className="w-8 h-8 text-secondary opacity-50" />
           </div>
         </Card>
       </div>
@@ -93,7 +93,7 @@ export default function AdminCreators() {
                   <td className="p-4 text-foreground font-semibold">{creator.display_name}</td>
                   <td className="p-4 text-muted-foreground text-xs">{creator.channel_username}</td>
                   <td className="p-4 text-right text-secondary font-semibold">{creator.balance}</td>
-                  <td className="p-4 text-right text-accent">{creator.supporters}</td>
+                  <td className="p-4 text-right text-secondary">{creator.supporters}</td>
                   <td className="p-4 text-muted-foreground text-xs">
                     {new Date(creator.created_at).toLocaleDateString()}
                   </td>

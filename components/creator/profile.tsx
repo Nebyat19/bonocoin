@@ -162,7 +162,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
           </div>
         </div>
 
-        {formError && <p className="text-sm text-destructive mb-4">{formError}</p>}
+        {formError && <p className="text-sm text-primary mb-4">{formError}</p>}
 
         {!isEditing ? (
           <div className="space-y-3">
@@ -250,7 +250,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
                         variant="ghost"
                         size="icon"
                         onClick={() => handleRemoveLink(index)}
-                        className="h-10 w-10 text-destructive"
+                        className="h-10 w-10 text-primary"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -265,7 +265,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
               </div>
             </div>
 
-            {formError && <p className="text-sm text-destructive">{formError}</p>}
+            {formError && <p className="text-sm text-primary">{formError}</p>}
           </div>
         )}
 
@@ -313,7 +313,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
       {profileData.links && profileData.links.length > 0 && (
         <Card className="bg-card border-border p-6">
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-            <LinkIcon className="w-5 h-5 text-accent" />
+            <LinkIcon className="w-5 h-5 text-secondary" />
             Links
           </h3>
 
