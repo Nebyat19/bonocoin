@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { query } from "@/lib/db"
+
+import { getSupabaseServerClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,21 +11,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Update withdrawal status
-    const result = await query(
-      `UPDATE withdrawal_requests 
-       SET status = 'approved', approved_at = NOW(), approved_by = $1
-       WHERE id = $2
-       RETURNING *`,
-      [admin_id, withdrawal_id],
-    )
+    const supabase = getSupabaseServerClient()
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 500 })
+    }
+    const { data, error } = await supabase
+      .from("withdrawal_requests")
+      .update({
+        status: "approved",
+        approved_at: new Date().toISOString(),
+        approved_by: admin_id,
+      })
+      .eq("id", withdrawal_id)
+      .select("*")
+      .single()
+
+    if (error) {
+      throw error
+    }
 
     // In production, trigger actual payment to bank account
     // Example: Process via Chapa bank transfer API
 
     return NextResponse.json({
       status: "success",
-      withdrawal: result[0],
+      withdrawal: data,
     })
   } catch (error) {
     console.error("Withdrawal approval error:", error)

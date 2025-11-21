@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,8 @@ import {
   Zap,
   Heart,
   TrendingUp,
-  Shield
+  Shield,
+  AlertCircle
 } from "lucide-react"
 import { generateSupportLinkId } from "@/lib/utils/crypto"
 import type { StoredCreator, StoredUser } from "@/types/models"
@@ -41,6 +42,28 @@ interface OnboardingProps {
   onSuccess: (data: OnboardingResult) => void
 }
 
+declare global {
+  interface TelegramWebApp {
+    initData?: string
+    initDataUnsafe?: {
+      user?: {
+        id: number
+        first_name?: string
+        last_name?: string
+        username?: string
+      }
+    }
+    ready?: () => void
+    expand?: () => void
+  }
+
+  interface Window {
+    Telegram?: {
+      WebApp?: TelegramWebApp
+    }
+  }
+}
+
 export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -55,6 +78,16 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
   const [wantsToBeCreator, setWantsToBeCreator] = useState<boolean | null>(null)
   const [usernameError, setUsernameError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [isTelegramAvailable, setIsTelegramAvailable] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
+      setIsTelegramAvailable(true)
+      window.Telegram.WebApp.ready?.()
+      window.Telegram.WebApp.expand?.()
+    }
+  }, [])
 
   const loadReservedUsernames = () => {
     try {
@@ -71,6 +104,61 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     if (!list.includes(username)) {
       localStorage.setItem(CREATOR_USERNAMES_KEY, JSON.stringify([...list, username]))
     }
+  }
+
+  const handleTelegramLogin = async () => {
+    setIsLoading(true)
+    setAuthError(null)
+    setFormError(null)
+    try {
+      const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+      if (!telegramApp?.initData || !telegramApp.initDataUnsafe?.user) {
+        setAuthError("Please open this Mini App inside Telegram to continue.")
+        setIsLoading(false)
+        return
+      }
+
+      const response = await fetch("/api/telegram-auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ initData: telegramApp.initData }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        setAuthError(payload.error || "Unable to authenticate with Telegram.")
+        setIsLoading(false)
+        return
+      }
+
+      const payload = await response.json()
+      setUserData(payload.user as StoredUser)
+      setStep(3)
+    } catch (error) {
+      console.error("Telegram auth error:", error)
+      setAuthError("Failed to connect to Telegram. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDemoLogin = () => {
+    const demoUser: StoredUser = {
+      id: "demo-user",
+      telegram_id: "demo-user",
+      first_name: "Demo",
+      last_name: "User",
+      username: "demo_bonower",
+      display_name: "Demo Bonower",
+      balance: 0,
+      type: "user",
+    }
+    setUserData(demoUser)
+    setAuthError(null)
+    setFormError(null)
+    setStep(3)
   }
 
   // Step 1: Welcome with animation
@@ -181,28 +269,15 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
             </div>
           </Card>
 
+          {authError && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              <span>{authError}</span>
+            </div>
+          )}
+
           <Button
-            onClick={async () => {
-              setIsLoading(true)
-              try {
-                await new Promise((resolve) => setTimeout(resolve, 1500))
-                const mockUser: StoredUser = {
-                  id: Math.random().toString(),
-                  telegram_id: "123456789",
-                  username: "user_" + Date.now(),
-                  first_name: "Bonower",
-                  last_name: "Name",
-                  balance: 0,
-                  type: "user",
-                }
-                setUserData(mockUser)
-                setStep(3)
-              } catch (error) {
-                console.error("Login error:", error)
-              } finally {
-                setIsLoading(false)
-              }
-            }}
+            onClick={handleTelegramLogin}
             disabled={isLoading}
             className="w-full bg-primary hover:bg-primary/90 h-14 text-lg font-semibold text-primary-foreground shadow-lg"
           >
@@ -218,6 +293,23 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               </>
             )}
           </Button>
+
+          {!isTelegramAvailable && (
+            <div className="mt-6 space-y-3 text-center">
+              <p className="text-sm text-muted-foreground">
+                Testing outside Telegram? Use a demo account to explore the experience.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDemoLogin}
+                className="w-full h-12"
+                disabled={isLoading}
+              >
+                Continue in Demo Mode
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     )
