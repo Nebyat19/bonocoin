@@ -35,7 +35,15 @@ type Supabase = SupabaseClient<Database>
 function serverSupabase(): Supabase {
   const client = getSupabaseServerClient()
   if (!client) {
-    throw new Error("Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.")
+    const missing = []
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL")
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY")
+    
+    const errorMsg = missing.length > 0
+      ? `Missing Supabase environment variables: ${missing.join(", ")}. Please set them in your .env file.`
+      : "Supabase is not configured. Please check your environment variables."
+    
+    throw new Error(errorMsg)
   }
   return client
 }
