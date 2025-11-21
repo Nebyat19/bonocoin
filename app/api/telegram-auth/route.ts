@@ -68,14 +68,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Server missing TELEGRAM_BOT_TOKEN." }, { status: 500 })
     }
 
+    console.log("Verifying Telegram initData...")
     const telegramUser = verifyTelegramInitData(initData, botToken)
+    console.log("Telegram user verified:", { id: telegramUser.id, username: telegramUser.username })
+
+    console.log("Upserting user to Supabase...")
     const storedUser = await upsertTelegramUser(telegramUser)
+    console.log("User upserted successfully:", storedUser.id)
 
     return NextResponse.json({ user: storedUser })
   } catch (error) {
     console.error("Telegram auth error:", error)
-    const message = error instanceof Error ? error.message : "Unable to process Telegram login."
-    return NextResponse.json({ error: message }, { status: 400 })
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      const errorMessage = error.message
+      
+      // Check for specific error types
+      if (errorMessage.includes("Supabase") || errorMessage.includes("configured")) {
+        return NextResponse.json(
+          { error: "Database configuration error. Please check your Supabase credentials." },
+          { status: 500 }
+        )
+      }
+      
+      if (errorMessage.includes("signature") || errorMessage.includes("hash")) {
+        return NextResponse.json(
+          { error: "Invalid Telegram authentication. Please try again." },
+          { status: 401 }
+        )
+      }
+      
+      if (errorMessage.includes("expired")) {
+        return NextResponse.json(
+          { error: "Telegram session expired. Please refresh and try again." },
+          { status: 401 }
+        )
+      }
+      
+      // Return the specific error message
+      return NextResponse.json({ error: errorMessage }, { status: 400 })
+    }
+    
+    return NextResponse.json(
+      { error: "Unable to process Telegram login. Please check server logs for details." },
+      { status: 500 }
+    )
   }
 }
 

@@ -71,23 +71,40 @@ export async function createUser(
     phone_number?: string
   },
 ): Promise<User> {
-  const { data: inserted, error } = await serverSupabase()
-    .from("users")
-    .insert({
-      telegram_id: telegramId,
-      username: data.username || null,
-      first_name: data.first_name || null,
-      last_name: data.last_name || null,
-      phone_number: data.phone_number || null,
-    })
-    .select("*")
-    .single()
+  try {
+    const { data: inserted, error } = await serverSupabase()
+      .from("users")
+      .insert({
+        telegram_id: telegramId,
+        username: data.username || null,
+        first_name: data.first_name || null,
+        last_name: data.last_name || null,
+        phone_number: data.phone_number || null,
+      })
+      .select("*")
+      .single()
 
-  if (error) {
-    throw error
+    if (error) {
+      console.error("Error creating user:", error)
+      // Check if it's a table not found error
+      if (error.message?.includes("relation") && error.message?.includes("does not exist")) {
+        throw new Error("Database tables not found. Please run the database migration script first.")
+      }
+      throw new Error(`Database error: ${error.message}`)
+    }
+
+    if (!inserted) {
+      throw new Error("User creation returned no data")
+    }
+
+    return inserted as User
+  } catch (error) {
+    console.error("createUser error:", error)
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error("Failed to create user in database")
   }
-
-  return inserted as User
 }
 
 export interface TelegramProfilePayload {
@@ -98,37 +115,50 @@ export interface TelegramProfilePayload {
 }
 
 export async function upsertTelegramUser(payload: TelegramProfilePayload): Promise<User> {
-  const telegramId = String(payload.id)
-  const existing = await getUserByTelegramId(telegramId)
+  try {
+    const telegramId = String(payload.id)
+    const existing = await getUserByTelegramId(telegramId)
 
-  const firstName = payload.first_name ?? existing?.first_name ?? null
-  const lastName = payload.last_name ?? existing?.last_name ?? null
-  const username = payload.username ?? existing?.username ?? null
+    const firstName = payload.first_name ?? existing?.first_name ?? null
+    const lastName = payload.last_name ?? existing?.last_name ?? null
+    const username = payload.username ?? existing?.username ?? null
 
-  if (existing) {
-    const { data, error } = await serverSupabase()
-      .from("users")
-      .update({
-        first_name: firstName,
-        last_name: lastName,
-        username,
-      })
-      .eq("id", existing.id)
-      .select("*")
-      .single()
+    if (existing) {
+      const { data, error } = await serverSupabase()
+        .from("users")
+        .update({
+          first_name: firstName,
+          last_name: lastName,
+          username,
+        })
+        .eq("id", existing.id)
+        .select("*")
+        .single()
 
-    if (error) {
-      throw error
+      if (error) {
+        console.error("Error updating user:", error)
+        throw new Error(`Database error: ${error.message}`)
+      }
+
+      if (!data) {
+        throw new Error("User update returned no data")
+      }
+
+      return data as User
     }
 
-    return data as User
+    return createUser(telegramId, {
+      username: username || undefined,
+      first_name: firstName || undefined,
+      last_name: lastName || undefined,
+    })
+  } catch (error) {
+    console.error("upsertTelegramUser error:", error)
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error("Failed to create or update user in database")
   }
-
-  return createUser(telegramId, {
-    username: username || undefined,
-    first_name: firstName || undefined,
-    last_name: lastName || undefined,
-  })
 }
 
 export async function getCreatorByUserId(userId: number): Promise<Creator | null> {

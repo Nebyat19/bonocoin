@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:list": "ls -la migrations/",
+    "migrate:create": "echo 'Create new migration: touch migrations/XXX_description.sql'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -69,6 +72,7 @@
     "@types/react-dom": "^19",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
+    "tsx": "^4.20.6",
     "tw-animate-css": "1.3.3",
     "typescript": "^5"
   }
