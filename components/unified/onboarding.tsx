@@ -112,7 +112,14 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     setFormError(null)
     try {
       const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+      
+      // If Telegram is not available, automatically use demo mode
       if (!telegramApp?.initData || !telegramApp.initDataUnsafe?.user) {
+        if (!isTelegramAvailable) {
+          console.log("Telegram not available, using demo mode")
+          handleDemoLogin()
+          return
+        }
         setAuthError("Please open this Mini App inside Telegram to continue.")
         setIsLoading(false)
         return
@@ -128,6 +135,12 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}))
+        // If Supabase is not configured, fall back to demo mode
+        if (payload.error?.includes("Supabase") || payload.error?.includes("configured")) {
+          console.log("Supabase not configured, using demo mode:", payload.error)
+          handleDemoLogin()
+          return
+        }
         setAuthError(payload.error || "Unable to authenticate with Telegram.")
         setIsLoading(false)
         return
@@ -138,6 +151,12 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
       setStep(3)
     } catch (error) {
       console.error("Telegram auth error:", error)
+      // If there's a network error or Supabase issue, try demo mode
+      if (!isTelegramAvailable) {
+        console.log("Telegram auth error, using demo mode")
+        handleDemoLogin()
+        return
+      }
       setAuthError("Failed to connect to Telegram. Please try again.")
     } finally {
       setIsLoading(false)
@@ -276,30 +295,21 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
             {isLoading ? (
               <>
                 <div className="animate-spin mr-2">₿</div>
-                Connecting...
+                {isTelegramAvailable ? "Connecting..." : "Starting Demo..."}
               </>
             ) : (
               <>
                 <Zap className="w-5 h-5 mr-2" />
-                Login with Telegram
+                {isTelegramAvailable ? "Login with Telegram" : "Continue (Demo Mode)"}
               </>
             )}
           </Button>
 
           {!isTelegramAvailable && (
-            <div className="mt-6 space-y-3 text-center">
-              <p className="text-sm text-muted-foreground">
-                Testing outside Telegram? Use a demo account to explore the experience.
+            <div className="mt-4 text-center">
+              <p className="text-xs text-muted-foreground">
+                💡 Testing in browser? The app will use demo mode automatically.
               </p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleDemoLogin}
-                className="w-full h-12"
-                disabled={isLoading}
-              >
-                Continue in Demo Mode
-              </Button>
             </div>
           )}
         </div>
