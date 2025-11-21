@@ -4,9 +4,10 @@ import { LogOut, Settings, Bell, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import type { StoredUser } from "@/types/models"
 
 interface UserHeaderProps {
-  user: any
+  user: StoredUser
 }
 
 export default function UserHeader({ user }: UserHeaderProps) {

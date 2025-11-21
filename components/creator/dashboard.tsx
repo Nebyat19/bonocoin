@@ -1,21 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import CreatorBalance from "./balance-card"
 import CreatorProfile from "./profile"
 import WithdrawalRequest from "./withdrawal-request"
 import SupportersList from "./supporters-list"
 import CreatorHeader from "./header"
+import type { StoredCreator } from "@/types/models"
 
 interface CreatorDashboardProps {
-  creator: any
+  creator: StoredCreator
 }
 
 export default function CreatorDashboard({ creator }: CreatorDashboardProps) {
   const [activeTab, setActiveTab] = useState("balance")
-  const [creatorData, setCreatorData] = useState(creator)
-  const [balance, setBalance] = useState(creator.balance || 0)
+  const [creatorData, setCreatorData] = useState<StoredCreator>(creator)
+  const balance = useMemo(() => Number(creatorData.balance ?? 0), [creatorData.balance])
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -43,7 +44,7 @@ export default function CreatorDashboard({ creator }: CreatorDashboardProps) {
           </TabsContent>
 
           <TabsContent value="supporters" className="space-y-6">
-            <SupportersList creator={creatorData} />
+            <SupportersList />
           </TabsContent>
 
           <TabsContent value="withdraw" className="space-y-6">

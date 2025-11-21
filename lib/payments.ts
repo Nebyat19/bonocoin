@@ -13,9 +13,8 @@ export async function initiatePayment(
 ) {
   if (provider === "chapa") {
     return initiateChapaPayment(userId, amount, coins)
-  } else {
-    return initiateMockPayment(userId, amount, coins)
   }
+  return initiateMockPayment(userId)
 }
 
 async function initiateChapaPayment(userId: string, amount: number, coins: number) {
@@ -61,7 +60,7 @@ async function initiateChapaPayment(userId: string, amount: number, coins: numbe
   }
 }
 
-async function initiateMockPayment(userId: string, amount: number, coins: number) {
+async function initiateMockPayment(userId: string) {
   // Mock payment for testing
   return {
     status: "success",

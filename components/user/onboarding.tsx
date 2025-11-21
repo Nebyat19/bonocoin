@@ -4,14 +4,14 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { LogIn, Zap } from "lucide-react"
+import type { StoredUser } from "@/types/models"
 
 interface UserOnboardingProps {
-  onSuccess: (user: any) => void
+  onSuccess: (user: StoredUser) => void
 }
 
 export default function UserOnboarding({ onSuccess }: UserOnboardingProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [step, setStep] = useState(1)
 
   const handleTelegramLogin = async () => {
     setIsLoading(true)

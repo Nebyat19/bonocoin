@@ -1,14 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import UserDashboard from "@/components/user/dashboard"
 import UserOnboarding from "@/components/user/onboarding"
+import type { StoredCreator, StoredUser } from "@/types/models"
+
+const parseItem = <T,>(key: string): T | null => {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : null
+  } catch (error) {
+    console.error(`Failed to parse ${key}`, error)
+    return null
+  }
+}
 
 export default function UserPage() {
-  const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<StoredUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -16,21 +25,22 @@ export default function UserPage() {
     const initUser = async () => {
       try {
         // In a real app, this would validate the Telegram Web App data
-        const storedUser = localStorage.getItem("user")
+        const storedUser = parseItem<StoredUser>("user")
         if (storedUser) {
-          setUser(JSON.parse(storedUser))
+          setUser(storedUser)
           setIsAuthenticated(true)
         } else {
           // If no user but creator exists, create a user entry from creator
-          const storedCreator = localStorage.getItem("creator")
+          const storedCreator = parseItem<StoredCreator>("creator")
           if (storedCreator) {
-            const creator = JSON.parse(storedCreator)
             // Create a user object from creator data
-            const userFromCreator = {
-              id: creator.user_id || creator.id,
-              telegram_id: creator.user_id || creator.id,
-              username: creator.channel_username,
-              first_name: creator.display_name,
+            const creatorId = storedCreator.user_id ?? storedCreator.id ?? ""
+            const userFromCreator: StoredUser = {
+              id: String(creatorId),
+              telegram_id: String(creatorId),
+              username: storedCreator.handle ?? storedCreator.channel_username ?? null,
+              display_name: storedCreator.display_name ?? storedCreator.handle ?? null,
+              first_name: storedCreator.display_name ?? "Creator",
               balance: 0, // User balance is separate from creator balance
               type: "user",
             }

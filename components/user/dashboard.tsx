@@ -7,14 +7,15 @@ import BuyCoins from "./buy-coins"
 import SendCoins from "./send-coins"
 import UserTransactionHistory from "./transaction-history"
 import UserHeader from "./header"
+import type { StoredUser } from "@/types/models"
 
 interface UserDashboardProps {
-  user: any
+  user: StoredUser
 }
 
 export default function UserDashboard({ user }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState("balance")
-  const [balance, setBalance] = useState(user.balance || 0)
+  const [balance, setBalance] = useState(Number(user.balance ?? 0))
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -33,11 +34,11 @@ export default function UserDashboard({ user }: UserDashboardProps) {
           </TabsContent>
 
           <TabsContent value="buy" className="space-y-6">
-            <BuyCoins onSuccess={(amount) => setBalance(balance + amount)} />
+            <BuyCoins onSuccess={(amount) => setBalance((prev) => prev + amount)} />
           </TabsContent>
 
           <TabsContent value="send" className="space-y-6">
-            <SendCoins currentBalance={balance} onSuccess={(amount) => setBalance(balance - amount)} />
+            <SendCoins currentBalance={balance} onSuccess={(amount) => setBalance((prev) => prev - amount)} />
           </TabsContent>
         </Tabs>
       </main>

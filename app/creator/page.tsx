@@ -4,25 +4,36 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import CreatorDashboard from "@/components/creator/dashboard"
 import CreatorOnboarding from "@/components/creator/onboarding"
+import type { StoredCreator, StoredUser } from "@/types/models"
+
+const parseStored = <T,>(key: string): T | null => {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : null
+  } catch (error) {
+    console.error(`Failed to parse ${key}`, error)
+    return null
+  }
+}
 
 export default function CreatorPage() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [creator, setCreator] = useState(null)
+  const [creator, setCreator] = useState<StoredCreator | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const initCreator = async () => {
       try {
-        const storedCreator = localStorage.getItem("creator")
+        const storedCreator = parseStored<StoredCreator>("creator")
         if (storedCreator) {
-          setCreator(JSON.parse(storedCreator))
+          setCreator(storedCreator)
           setIsAuthenticated(true)
         } else {
           // If no creator but user exists, they can still access creator onboarding
           // The onboarding will create a creator profile linked to their user account
-          const storedUser = localStorage.getItem("user")
+          const storedUser = parseStored<StoredUser>("user")
           if (storedUser) {
             // User exists, they can proceed to onboarding
             setIsAuthenticated(false)

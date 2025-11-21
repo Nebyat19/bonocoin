@@ -5,9 +5,13 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Heart, LinkIcon, Share2, ArrowLeft } from "lucide-react"
+import type { StoredCreator } from "@/types/models"
 
 interface CreatorPageProps {
-  creator: any
+  creator: StoredCreator & {
+    balance: number
+    is_active?: boolean
+  }
 }
 
 export default function PublicCreatorPage({ creator }: CreatorPageProps) {
@@ -131,10 +135,12 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
 
         <div className="max-w-md mx-auto text-center -mt-8">
           <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mb-4 shadow-lg">
-            <span className="text-4xl font-bold text-foreground">{creator.display_name[0]}</span>
+            <span className="text-4xl font-bold text-foreground">
+              {creator.display_name?.charAt(0) || creator.handle?.replace("@", "").charAt(0) || "₿"}
+            </span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-1">{creator.display_name}</h1>
-          <p className="text-muted-foreground text-sm mb-2">{creator.channel_username}</p>
+          <h1 className="text-3xl font-bold text-foreground mb-1">{creator.display_name || creator.handle || "Creator"}</h1>
+          <p className="text-muted-foreground text-sm mb-2">{creator.channel_username || "Channel not provided"}</p>
         </div>
       </div>
 

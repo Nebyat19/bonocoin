@@ -1,31 +1,45 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import UnifiedOnboarding from "@/components/unified/onboarding"
 import UnifiedDashboard from "@/components/unified/dashboard"
+import type { StoredCreator, StoredUser } from "@/types/models"
+
+interface OnboardingResult {
+  user: StoredUser
+  creator?: StoredCreator
+}
+
+const parseStoredItem = <T,>(key: string): T | null => {
+  try {
+    const storedValue = localStorage.getItem(key)
+    return storedValue ? (JSON.parse(storedValue) as T) : null
+  } catch (error) {
+    console.error(`Failed to parse stored item "${key}"`, error)
+    return null
+  }
+}
 
 export default function Home() {
-  const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [creator, setCreator] = useState<any>(null)
+  const [user, setUser] = useState<StoredUser | null>(null)
+  const [creator, setCreator] = useState<StoredCreator | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Check for existing authentication
     const initAuth = async () => {
       try {
-        const storedUser = localStorage.getItem("user")
-        const storedCreator = localStorage.getItem("creator")
+        const storedUser = parseStoredItem<StoredUser>("user")
+        const storedCreator = parseStoredItem<StoredCreator>("creator")
 
         if (storedUser) {
-          setUser(JSON.parse(storedUser))
+          setUser(storedUser)
           setIsAuthenticated(true)
         }
 
         if (storedCreator) {
-          setCreator(JSON.parse(storedCreator))
+          setCreator(storedCreator)
         }
       } catch (error) {
         console.error("Auth check error:", error)
@@ -37,7 +51,7 @@ export default function Home() {
     initAuth()
   }, [])
 
-  const handleOnboardingSuccess = (data: { user: any; creator?: any }) => {
+  const handleOnboardingSuccess = (data: OnboardingResult) => {
     setUser(data.user)
     if (data.creator) {
       setCreator(data.creator)
@@ -47,25 +61,14 @@ export default function Home() {
     setIsAuthenticated(true)
   }
 
-  const handleCreatorCreated = (creatorData: any) => {
-    setCreator(creatorData)
-    localStorage.setItem("creator", JSON.stringify(creatorData))
-  }
-
   // Check if creator was just created (e.g., from /creator page)
   useEffect(() => {
-    const checkForNewCreator = () => {
-      const storedCreator = localStorage.getItem("creator")
-      if (storedCreator && !creator) {
-        try {
-          const creatorData = JSON.parse(storedCreator)
-          setCreator(creatorData)
-        } catch (error) {
-          console.error("Error parsing creator data:", error)
-        }
+    if (!creator) {
+      const storedCreator = parseStoredItem<StoredCreator>("creator")
+      if (storedCreator) {
+        setCreator(storedCreator)
       }
     }
-    checkForNewCreator()
   }, [creator])
 
   if (isLoading) {
@@ -85,5 +88,5 @@ export default function Home() {
     return <UnifiedOnboarding onSuccess={handleOnboardingSuccess} />
   }
 
-  return <UnifiedDashboard user={user} creator={creator} onCreatorCreated={handleCreatorCreated} />
+  return <UnifiedDashboard user={user} creator={creator} />
 }

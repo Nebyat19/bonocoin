@@ -3,11 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Clock, CheckCircle, XCircle } from "lucide-react"
 
-interface WithdrawalRequestsListProps {
-  creator: any
-}
-
-export default function WithdrawalRequestsList({ creator }: WithdrawalRequestsListProps) {
+export default function WithdrawalRequestsList() {
   // Mock withdrawal requests data
   const withdrawalRequests = [
     {

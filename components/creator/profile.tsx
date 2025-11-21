@@ -6,10 +6,19 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { LinkIcon, FileText, Copy, Check, Plus, Trash2 } from "lucide-react"
+import type { StoredCreator } from "@/types/models"
 
 interface CreatorProfileProps {
-  creator: any
-  onProfileUpdate?: (updatedCreator: any) => void
+  creator: StoredCreator
+  onProfileUpdate?: (updatedCreator: StoredCreator) => void
+}
+
+interface ProfileFormState {
+  handle: string
+  channel_username: string
+  display_name: string
+  bio: string
+  links: string[]
 }
 
 export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProfileProps) {
@@ -17,7 +26,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
   const [copiedUsername, setCopiedUsername] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileFormState>({
     handle: creator.handle || creator.channel_username || "",
     channel_username: creator.channel_username || "",
     display_name: creator.display_name || "",
@@ -163,8 +172,8 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
             </div>
 
             <div>
-              <p className="text-xs text-muted-foreground mb-1"> Username</p>
-              <p className=" text-fuchsia-500">
+              <p className="text-xs text-muted-foreground mb-1">Creator Username</p>
+              <p className="font-semibold text-foreground">
                 {(profileData.handle && profileData.handle.startsWith("@")) ? profileData.handle : `@${profileData.handle || "creator"}`}
               </p>
             </div>

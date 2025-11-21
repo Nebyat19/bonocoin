@@ -7,15 +7,22 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { LogIn, Plus, Trash2 } from "lucide-react"
 import { generateSupportLinkId } from "@/lib/utils/crypto"
+import type { StoredCreator } from "@/types/models"
 
 interface CreatorOnboardingProps {
-  onSuccess: (creator: any) => void
+  onSuccess: (creator: StoredCreator) => void
+}
+
+interface CreatorFormState {
+  channel_username: string
+  display_name: string
+  bio: string
+  links: string[]
 }
 
 export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps) {
-  const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreatorFormState>({
     channel_username: "",
     display_name: "",
     bio: "",
@@ -54,7 +61,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
       // Simulate registration
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      const mockCreator = {
+      const mockCreator: StoredCreator = {
         id: Math.random().toString(),
         user_id: "creator_user_" + Date.now(),
         channel_username: formData.channel_username,

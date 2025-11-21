@@ -1,15 +1,22 @@
 "use client"
 
 import { useParams } from "next/navigation"
+import Link from "next/link"
 import { useState, useEffect } from "react"
 import PublicCreatorPage from "@/components/public/creator-page"
+import type { StoredCreator } from "@/types/models"
+
+type PublicCreator = StoredCreator & {
+  balance: number
+  is_active: boolean
+}
 
 export default function SupportPage() {
   const params = useParams()
   const linkId = params.linkId as string
-  const [creator, setCreator] = useState(null)
+  const [creator, setCreator] = useState<PublicCreator | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadCreator = async () => {
@@ -17,7 +24,7 @@ export default function SupportPage() {
         // Mock loading creator by support link ID
         await new Promise((resolve) => setTimeout(resolve, 500))
 
-        const mockCreator = {
+        const mockCreator: PublicCreator = {
           id: "1",
           display_name: "Tech Creator",
           channel_username: "@techcreator",
@@ -29,7 +36,8 @@ export default function SupportPage() {
         }
 
         setCreator(mockCreator)
-      } catch (err) {
+      } catch (loadError) {
+        console.error("Failed to load creator", loadError)
         setError("Creator not found")
       } finally {
         setIsLoading(false)
@@ -58,10 +66,10 @@ export default function SupportPage() {
         <div className="text-center max-w-sm">
           <div className="text-5xl mb-4">❌</div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Creator Not Found</h1>
-          <p className="text-muted-foreground mb-6">The support link you're looking for doesn't exist.</p>
-          <a href="/" className="text-primary hover:text-primary/80 font-semibold">
+          <p className="text-muted-foreground mb-6">The support link you&rsquo;re looking for doesn&rsquo;t exist.</p>
+          <Link href="/" className="text-primary hover:text-primary/80 font-semibold">
             Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     )

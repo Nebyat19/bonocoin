@@ -1,18 +1,24 @@
-import { neon } from "@neondatabase/serverless"
+import { Pool } from "@neondatabase/serverless"
+import type { QueryResultRow } from "@neondatabase/serverless"
 
-const sql = neon(process.env.DATABASE_URL!)
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
-export async function query<T>(text: string, values?: (string | number | boolean | null)[]): Promise<T[]> {
+type QueryValue = string | number | boolean | null
+
+export async function query<T extends QueryResultRow = QueryResultRow>(text: string, values?: QueryValue[]): Promise<T[]> {
+  const client = await pool.connect()
   try {
-    const result = await sql(text, values)
-    return result as T[]
+    const result = await client.query<T>(text, values)
+    return result.rows
   } catch (error) {
     console.error("Database query error:", error)
     throw error
+  } finally {
+    client.release()
   }
 }
 
-export async function queryOne<T>(text: string, values?: (string | number | boolean | null)[]): Promise<T | null> {
-  const result = await query<T>(text, values)
-  return result.length > 0 ? result[0] : null
+export async function queryOne<T extends QueryResultRow = QueryResultRow>(text: string, values?: QueryValue[]): Promise<T | null> {
+  const rows = await query<T>(text, values)
+  return rows.length > 0 ? rows[0] : null
 }

@@ -14,18 +14,18 @@ import SupportersList from "@/components/creator/supporters-list"
 import WithdrawalRequest from "@/components/creator/withdrawal-request"
 import WithdrawalRequestsList from "@/components/creator/withdrawal-requests-list"
 import CreatorTransactions from "@/components/creator/transactions"
+import type { StoredCreator, StoredUser } from "@/types/models"
 
 interface UnifiedDashboardProps {
-  user: any
-  creator?: any
-  onCreatorCreated?: (creator: any) => void
+  user: StoredUser
+  creator?: StoredCreator | null
 }
 
-export default function UnifiedDashboard({ user, creator, onCreatorCreated }: UnifiedDashboardProps) {
+export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProps) {
   const [activeTab, setActiveTab] = useState("support")
-  const [userBalance, setUserBalance] = useState(user.balance || 0)
-  const [creatorBalance, setCreatorBalance] = useState(creator?.balance || 0)
-  const [currentCreator, setCurrentCreator] = useState(creator)
+  const [userBalance, setUserBalance] = useState(Number(user.balance ?? 0))
+  const [creatorBalance, setCreatorBalance] = useState(Number(creator?.balance ?? 0))
+  const [currentCreator, setCurrentCreator] = useState<StoredCreator | null>(creator ?? null)
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -73,12 +73,12 @@ export default function UnifiedDashboard({ user, creator, onCreatorCreated }: Un
                 <UserTransactionHistory />
               </TabsContent>
               <TabsContent value="buy" className="space-y-6">
-                <BuyCoins onSuccess={(amount) => setUserBalance(userBalance + amount)} />
+                <BuyCoins onSuccess={(amount) => setUserBalance((prev) => prev + amount)} />
               </TabsContent>
               <TabsContent value="send" className="space-y-6">
-                <SendCoins 
-                  currentBalance={userBalance} 
-                  onSuccess={(amount) => setUserBalance(userBalance - amount)} 
+                <SendCoins
+                  currentBalance={userBalance}
+                  onSuccess={(amount) => setUserBalance((prev) => prev - amount)}
                 />
               </TabsContent>
             </Tabs>
@@ -133,21 +133,21 @@ export default function UnifiedDashboard({ user, creator, onCreatorCreated }: Un
                     creator={currentCreator}
                     onProfileUpdate={(updated) => {
                       setCurrentCreator(updated)
-                      setCreatorBalance(updated.balance || creatorBalance)
+                      setCreatorBalance(Number(updated.balance ?? creatorBalance))
                     }}
                   />
                 </TabsContent>
                 <TabsContent value="supporters" className="space-y-6">
-                  <SupportersList creator={currentCreator} />
+                  <SupportersList />
                 </TabsContent>
                 <TabsContent value="withdraw" className="space-y-6">
                   <WithdrawalRequest currentBalance={creatorBalance} />
                 </TabsContent>
                 <TabsContent value="requests" className="space-y-6">
-                  <WithdrawalRequestsList creator={currentCreator} />
+                  <WithdrawalRequestsList />
                 </TabsContent>
                 <TabsContent value="transactions" className="space-y-6">
-                  <CreatorTransactions creator={currentCreator} />
+                  <CreatorTransactions />
                 </TabsContent>
               </Tabs>
             </TabsContent>

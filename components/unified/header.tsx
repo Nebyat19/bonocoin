@@ -1,17 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { LogOut, Share2, Bell, Settings, Coins, Users } from "lucide-react"
+import { LogOut, Share2, Bell, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
+import type { StoredCreator, StoredUser } from "@/types/models"
 
 interface UnifiedHeaderProps {
-  user: any
-  creator?: any
+  user: StoredUser
+  creator?: StoredCreator | null
 }
 
 export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
-  const router = useRouter()
   const [copyFeedback, setCopyFeedback] = useState(false)
 
   const displayName =

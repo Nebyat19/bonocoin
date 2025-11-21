@@ -3,11 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { Users } from "lucide-react"
 
-interface SupportersListProps {
-  creator: any
-}
-
-export default function SupportersList({ creator }: SupportersListProps) {
+export default function SupportersList() {
   // Mock supporters data
   const supporters = [
     {

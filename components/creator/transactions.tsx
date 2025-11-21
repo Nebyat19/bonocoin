@@ -3,11 +3,7 @@
 import { Card } from "@/components/ui/card"
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react"
 
-interface CreatorTransactionsProps {
-  creator: any
-}
-
-export default function CreatorTransactions({ creator }: CreatorTransactionsProps) {
+export default function CreatorTransactions() {
   // Mock transactions data
   const transactions = [
     {

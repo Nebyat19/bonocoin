@@ -3,14 +3,14 @@ import { query, queryOne } from "./db"
 export async function transferCoins(fromUserId: number, toCreatorId: number, amount: number, message?: string) {
   try {
     // Begin transaction
-    const result = await query(
+    await query(
       `BEGIN;
        UPDATE users SET balance = balance - $1 WHERE id = $2;
        UPDATE creators SET balance = balance + $3 WHERE id = $4;
        INSERT INTO transactions (from_user_id, to_creator_id, amount, admin_fee, transaction_type, description, status)
        VALUES ($2, $4, $5, $6, 'transfer', $7, 'completed');
        COMMIT;`,
-      [amount, fromUserId, amount * 0.95, toCreatorId, amount, amount * 0.05, message],
+      [amount, fromUserId, amount * 0.95, toCreatorId, amount, amount * 0.05, message ?? null],
     )
 
     return { success: true, message: "Transfer completed" }

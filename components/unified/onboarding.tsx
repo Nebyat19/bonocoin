@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,18 +20,32 @@ import {
   Shield
 } from "lucide-react"
 import { generateSupportLinkId } from "@/lib/utils/crypto"
+import type { StoredCreator, StoredUser } from "@/types/models"
 
 const CREATOR_USERNAMES_KEY = "bonocoin_creator_usernames"
 
+interface OnboardingResult {
+  user: StoredUser
+  creator?: StoredCreator
+}
+
+interface CreatorFormState {
+  handle: string
+  channel_username: string
+  display_name: string
+  bio: string
+  links: string[]
+}
+
 interface OnboardingProps {
-  onSuccess: (data: { user: any; creator?: any }) => void
+  onSuccess: (data: OnboardingResult) => void
 }
 
 export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
-  const [userData, setUserData] = useState<any>(null)
-  const [creatorData, setCreatorData] = useState({
+  const [userData, setUserData] = useState<StoredUser | null>(null)
+  const [creatorData, setCreatorData] = useState<CreatorFormState>({
     handle: "",
     channel_username: "",
     display_name: "",
@@ -94,7 +108,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 animate-slide-in-left" style={{ animationDelay: '0.2s', animationFillMode: 'both', opacity: 0 }}>
+            <div className="flex items-start gap-4 animate-slide-in-left" style={{ animationDelay: "0.2s", animationFillMode: "both", opacity: 0 }}>
               <div className="p-3 bg-secondary/10 rounded-xl">
                 <Users className="w-6 h-6 text-secondary" />
               </div>
@@ -104,7 +118,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 animate-slide-in-left" style={{ animationDelay: '0.4s', animationFillMode: 'both', opacity: 0 }}>
+            <div className="flex items-start gap-4 animate-slide-in-left" style={{ animationDelay: "0.4s", animationFillMode: "both", opacity: 0 }}>
               <div className="p-3 bg-accent/10 rounded-xl">
                 <Heart className="w-6 h-6 text-accent" />
               </div>
@@ -172,7 +186,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               setIsLoading(true)
               try {
                 await new Promise((resolve) => setTimeout(resolve, 1500))
-                const mockUser = {
+                const mockUser: StoredUser = {
                   id: Math.random().toString(),
                   telegram_id: "123456789",
                   username: "user_" + Date.now(),
@@ -244,7 +258,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
                     <Users className="w-6 h-6 text-secondary" />
                   </div>
                   <div className="text-left flex-1">
-                    <h3 className="font-semibold text-foreground mb-1">Yes, I'm a Creator</h3>
+                    <h3 className="font-semibold text-foreground mb-1">Yes, I&rsquo;m a Creator</h3>
                     <p className="text-sm text-muted-foreground">Set up your profile to receive support</p>
                   </div>
                   {wantsToBeCreator === true && (
@@ -267,7 +281,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
                   </div>
                   <div className="text-left flex-1">
                     <h3 className="font-semibold text-foreground mb-1">Not Now</h3>
-                    <p className="text-sm text-muted-foreground">I'll just support creators for now</p>
+                    <p className="text-sm text-muted-foreground">I&rsquo;ll just support creators for now</p>
                   </div>
                   {wantsToBeCreator === false && (
                     <CheckCircle2 className="w-6 h-6 text-primary" />
@@ -282,6 +296,10 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               if (wantsToBeCreator === true) {
                 setStep(4)
               } else {
+                if (!userData) {
+                  setFormError("Please finish connecting your Telegram account.")
+                  return
+                }
                 onSuccess({ user: userData })
               }
             }}
@@ -319,6 +337,12 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     }
 
     const handleComplete = async () => {
+      if (!userData) {
+        setFormError("Please connect your Telegram account first.")
+        return
+      }
+      const currentUser: StoredUser = userData
+
       if (!creatorData.display_name.trim()) {
         setFormError("Display name is required")
         return
@@ -352,9 +376,9 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
       try {
         await new Promise((resolve) => setTimeout(resolve, 1500))
 
-        const mockCreator = {
+        const mockCreator: StoredCreator = {
           id: Math.random().toString(),
-          user_id: userData.id,
+          user_id: currentUser.id,
           handle: formattedUsername,
           channel_username: creatorData.channel_username.trim(),
           display_name: creatorData.display_name.trim(),
@@ -366,7 +390,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
         }
 
         reserveUsername(normalizedUsername.toLowerCase())
-        onSuccess({ user: userData, creator: mockCreator })
+        onSuccess({ user: currentUser, creator: mockCreator })
       } catch (error) {
         console.error("Registration error:", error)
         setFormError("Registration failed. Please try again.")

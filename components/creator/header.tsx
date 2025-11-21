@@ -4,9 +4,10 @@ import { useState } from "react"
 import { LogOut, Share2, Coins } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import type { StoredCreator } from "@/types/models"
 
 interface CreatorHeaderProps {
-  creator: any
+  creator: StoredCreator
 }
 
 export default function CreatorHeader({ creator }: CreatorHeaderProps) {

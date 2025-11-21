@@ -2,7 +2,7 @@
 
 import { Bell, Settings } from "lucide-react"
 
-export default function Header({ userType }: { userType?: string | null }) {
+export default function Header() {
   return (
     <div className="bg-card border-b border-border sticky top-0 z-10">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
