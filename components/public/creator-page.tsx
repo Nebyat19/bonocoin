@@ -16,19 +16,23 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
   const [supporterName, setSupporterName] = useState("")
   const [supportMessage, setSupportMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [supportStatus, setSupportStatus] = useState<string | null>(null)
+  const [supportError, setSupportError] = useState<string | null>(null)
+  const [shareStatus, setShareStatus] = useState<string | null>(null)
 
   const handleSendSupport = async () => {
     setIsLoading(true)
+    setSupportError(null)
     try {
-      // Simulate support transaction
       await new Promise((resolve) => setTimeout(resolve, 1500))
-      alert("Thank you for your support!")
       setShowSupportForm(false)
       setSupportAmount("10")
       setSupporterName("")
       setSupportMessage("")
+      setSupportStatus("Thank you for your support! Your BONO is on the way.")
     } catch (error) {
       console.error("Support error:", error)
+      setSupportError("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -37,7 +41,8 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
   const handleShare = () => {
     const shareUrl = window.location.href
     navigator.clipboard.writeText(shareUrl)
-    alert("Link copied to clipboard!")
+    setShareStatus("Link copied!")
+    setTimeout(() => setShareStatus(null), 2000)
   }
 
   if (showSupportForm) {
@@ -102,6 +107,7 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
               <Heart className="w-5 h-5 mr-2" />
               {isLoading ? "Sending..." : `Send ${supportAmount} BONO`}
             </Button>
+            {supportError && <p className="text-sm text-destructive text-center mt-2">{supportError}</p>}
           </Card>
         </div>
       </div>
@@ -111,7 +117,8 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="bg-gradient-to-b from-primary/20 to-background p-4 relative">
-        <div className="max-w-md mx-auto flex justify-end">
+        <div className="max-w-md mx-auto flex justify-end gap-2 items-center">
+          {shareStatus && <span className="text-xs text-primary">{shareStatus}</span>}
           <Button
             onClick={handleShare}
             variant="ghost"
@@ -178,6 +185,7 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
           <Heart className="w-5 h-5 mr-2" />
           Send Support
         </Button>
+        {supportStatus && <p className="text-center text-sm text-primary">{supportStatus}</p>}
       </main>
     </div>
   )

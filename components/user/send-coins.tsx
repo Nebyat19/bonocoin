@@ -11,22 +11,65 @@ interface SendCoinsProps {
   onSuccess: (amount: number) => void
 }
 
+interface CreatorResult {
+  id: string
+  display_name: string
+  handle: string
+  channel_username: string
+  support_link_id: string
+}
+
 export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps) {
-  const [creatorLink, setCreatorLink] = useState("")
+  const [creatorIdentifier, setCreatorIdentifier] = useState("")
   const [amount, setAmount] = useState("5")
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedCreator, setSelectedCreator] = useState(null)
+  const [selectedCreator, setSelectedCreator] = useState<CreatorResult | null>(null)
+  const [lookupError, setLookupError] = useState<string | null>(null)
 
   const handleSelectCreator = async () => {
+    if (!creatorIdentifier.trim()) {
+      setLookupError("Please enter a creator username or support link")
+      return
+    }
+
     setIsLoading(true)
+    setLookupError(null)
     try {
-      // Simulate looking up creator by link
+      // Simulate looking up creator by username or link
       await new Promise((resolve) => setTimeout(resolve, 800))
-      setSelectedCreator({
-        id: "1",
-        display_name: "Sample Creator",
-        channel_username: "@sample_creator",
-      })
+      const input = creatorIdentifier.trim()
+
+      if (input.length < 3) {
+        throw new Error("Identifier too short")
+      }
+
+      let mockCreator: CreatorResult
+
+      if (input.startsWith("http") || input.includes("/support/")) {
+        const parts = input.split("/")
+        const linkId = parts.filter(Boolean).pop() || "support_link"
+        mockCreator = {
+          id: linkId,
+          handle: `@${linkId.slice(0, 12)}`,
+          display_name: "Creator " + linkId.slice(0, 4).toUpperCase(),
+          channel_username: `@${linkId.slice(0, 10)}`,
+          support_link_id: linkId,
+        }
+      } else {
+        const username = input.startsWith("@") ? input : `@${input}`
+        mockCreator = {
+          id: username,
+          handle: username,
+          display_name: username.replace("@", "").replace(/_/g, " "),
+          channel_username: username,
+          support_link_id: `support_${username.replace("@", "")}`,
+        }
+      }
+
+      setSelectedCreator(mockCreator)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Creator not found. Double-check the username or link."
+      setLookupError(message)
     } finally {
       setIsLoading(false)
     }
@@ -38,7 +81,7 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
       // Simulate transfer
       await new Promise((resolve) => setTimeout(resolve, 1000))
       onSuccess(Number.parseFloat(amount))
-      setCreatorLink("")
+      setCreatorIdentifier("")
       setAmount("5")
       setSelectedCreator(null)
     } catch (error) {
@@ -58,21 +101,27 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
           <h3 className="font-bold text-lg text-foreground">Send Support</h3>
         </div>
 
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-3 block uppercase tracking-wider">
-            Creator Support Link
-          </label>
-          <Input
-            value={creatorLink}
-            onChange={(e) => setCreatorLink(e.target.value)}
-            placeholder="Paste creator link..."
-            className="bg-input/50 border-secondary/20 text-foreground focus:border-secondary/50 rounded-xl"
-          />
+        <div className="space-y-2">
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-3 block uppercase tracking-wider">
+              Creator Username or Link
+            </label>
+            <Input
+              value={creatorIdentifier}
+              onChange={(e) => setCreatorIdentifier(e.target.value)}
+              placeholder="Enter @username or paste support link"
+              className="bg-input/50 border-secondary/20 text-foreground focus:border-secondary/50 rounded-xl"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+          Use the creator&apos;s username (e.g. <span className="text-secondary font-semibold">@techcreator</span>) or their support link.
+          </p>
+          {lookupError && <p className="text-xs text-destructive">{lookupError}</p>}
         </div>
 
         <Button
           onClick={handleSelectCreator}
-          disabled={!creatorLink || isLoading}
+          disabled={!creatorIdentifier.trim() || isLoading}
           className="w-full bg-secondary hover:bg-secondary/90 h-10 text-base font-semibold text-secondary-foreground rounded-lg glow-pink transition-all"
         >
           {isLoading ? "Finding Creator..." : "Find Creator"}
@@ -90,7 +139,11 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
           </div>
           <div>
             <p className="font-bold text-foreground">{selectedCreator.display_name}</p>
-            <p className="text-xs text-muted-foreground">{selectedCreator.channel_username}</p>
+            <p className="text-xs text-muted-foreground">Handle: {selectedCreator.handle}</p>
+            {selectedCreator.channel_username && (
+              <p className="text-xs text-muted-foreground">Channel: {selectedCreator.channel_username}</p>
+            )}
+            <p className="text-[10px] text-muted-foreground">Support link: /support/{selectedCreator.support_link_id}</p>
           </div>
         </div>
 

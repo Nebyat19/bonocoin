@@ -21,6 +21,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
     bio: "",
     links: [""],
   })
+  const [formError, setFormError] = useState<string | null>(null)
 
   const handleAddLink = () => {
     setFormData({
@@ -44,7 +45,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
 
   const handleRegister = async () => {
     if (!formData.channel_username || !formData.display_name) {
-      alert("Please fill in all required fields")
+      setFormError("Please fill in all required fields.")
       return
     }
 
@@ -68,7 +69,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
       onSuccess(mockCreator)
     } catch (error) {
       console.error("Registration error:", error)
-      alert("Registration failed. Please try again.")
+      setFormError("Registration failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -163,6 +164,8 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
           <LogIn className="w-5 h-5 mr-2" />
           {isLoading ? "Setting up..." : "Create Creator Profile"}
         </Button>
+
+        {formError && <p className="text-sm text-destructive text-center mt-3">{formError}</p>}
 
         <p className="text-xs text-muted-foreground text-center mt-4">
           Your unique support link will be generated after setup

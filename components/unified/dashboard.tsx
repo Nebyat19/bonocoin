@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Coins, Users, Sparkles } from "lucide-react"
+import { Coins, Users, Sparkles, User, Users as UsersIcon, CreditCard, FileText, History } from "lucide-react"
 import UnifiedHeader from "./header"
 import UserBalance from "@/components/user/balance-card"
 import BuyCoins from "@/components/user/buy-coins"
@@ -12,6 +12,8 @@ import CreatorBalance from "@/components/creator/balance-card"
 import CreatorProfile from "@/components/creator/profile"
 import SupportersList from "@/components/creator/supporters-list"
 import WithdrawalRequest from "@/components/creator/withdrawal-request"
+import WithdrawalRequestsList from "@/components/creator/withdrawal-requests-list"
+import CreatorTransactions from "@/components/creator/transactions"
 
 interface UnifiedDashboardProps {
   user: any
@@ -87,14 +89,53 @@ export default function UnifiedDashboard({ user, creator, onCreatorCreated }: Un
             <TabsContent value="creator" className="space-y-6">
               <CreatorBalance balance={creatorBalance} />
               <Tabs defaultValue="profile" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 bg-muted mb-4 text-xs">
-                  <TabsTrigger value="profile">Profile</TabsTrigger>
-                  <TabsTrigger value="supporters">Supporters</TabsTrigger>
-                  <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
-                  <TabsTrigger value="stats">Stats</TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto mb-4 -mx-4 px-4 scrollbar-hide">
+                  <TabsList className="inline-flex bg-muted p-1 h-auto gap-1">
+                    <TabsTrigger 
+                      value="profile" 
+                      className="flex flex-col items-center justify-center gap-0.5 px-2 py-2 min-w-[70px] text-[10px] leading-tight whitespace-nowrap"
+                    >
+                      <User className="w-4 h-4 shrink-0" />
+                      <span className="truncate max-w-[60px]">Profile</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="supporters" 
+                      className="flex flex-col items-center justify-center gap-0.5 px-2 py-2 min-w-[70px] text-[10px] leading-tight whitespace-nowrap"
+                    >
+                      <UsersIcon className="w-4 h-4 shrink-0" />
+                      <span className="truncate max-w-[60px]">Supporters</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="withdraw" 
+                      className="flex flex-col items-center justify-center gap-0.5 px-2 py-2 min-w-[70px] text-[10px] leading-tight whitespace-nowrap"
+                    >
+                      <CreditCard className="w-4 h-4 shrink-0" />
+                      <span className="truncate max-w-[60px]">Withdraw</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="requests" 
+                      className="flex flex-col items-center justify-center gap-0.5 px-2 py-2 min-w-[70px] text-[10px] leading-tight whitespace-nowrap"
+                    >
+                      <FileText className="w-4 h-4 shrink-0" />
+                      <span className="truncate max-w-[60px]">Requests</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="transactions" 
+                      className="flex flex-col items-center justify-center gap-0.5 px-2 py-2 min-w-[70px] text-[10px] leading-tight whitespace-nowrap"
+                    >
+                      <History className="w-4 h-4 shrink-0" />
+                      <span className="truncate max-w-[60px]">Transactions</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
                 <TabsContent value="profile" className="space-y-6">
-                  <CreatorProfile creator={currentCreator} />
+                  <CreatorProfile
+                    creator={currentCreator}
+                    onProfileUpdate={(updated) => {
+                      setCurrentCreator(updated)
+                      setCreatorBalance(updated.balance || creatorBalance)
+                    }}
+                  />
                 </TabsContent>
                 <TabsContent value="supporters" className="space-y-6">
                   <SupportersList creator={currentCreator} />
@@ -102,26 +143,11 @@ export default function UnifiedDashboard({ user, creator, onCreatorCreated }: Un
                 <TabsContent value="withdraw" className="space-y-6">
                   <WithdrawalRequest currentBalance={creatorBalance} />
                 </TabsContent>
-                <TabsContent value="stats" className="space-y-6">
-                  <div className="bg-card border border-border rounded-lg p-6">
-                    <h3 className="font-semibold text-foreground mb-4">Creator Statistics</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total Supporters</span>
-                        <span className="font-semibold text-foreground">0</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Total Received</span>
-                        <span className="font-semibold text-foreground">{creatorBalance.toFixed(2)} BONO</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Support Link</span>
-                        <span className="font-semibold text-primary text-xs">
-                          /support/{currentCreator.support_link_id}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                <TabsContent value="requests" className="space-y-6">
+                  <WithdrawalRequestsList creator={currentCreator} />
+                </TabsContent>
+                <TabsContent value="transactions" className="space-y-6">
+                  <CreatorTransactions creator={currentCreator} />
                 </TabsContent>
               </Tabs>
             </TabsContent>

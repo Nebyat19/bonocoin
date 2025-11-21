@@ -14,11 +14,12 @@ interface CreatorDashboardProps {
 
 export default function CreatorDashboard({ creator }: CreatorDashboardProps) {
   const [activeTab, setActiveTab] = useState("balance")
+  const [creatorData, setCreatorData] = useState(creator)
   const [balance, setBalance] = useState(creator.balance || 0)
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <CreatorHeader creator={creator} />
+      <CreatorHeader creator={creatorData} />
       <main className="max-w-md mx-auto p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-muted mb-6 text-xs">
@@ -33,11 +34,16 @@ export default function CreatorDashboard({ creator }: CreatorDashboardProps) {
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6">
-            <CreatorProfile creator={creator} />
+            <CreatorProfile
+              creator={creatorData}
+              onProfileUpdate={(updated) => {
+                setCreatorData(updated)
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="supporters" className="space-y-6">
-            <SupportersList creator={creator} />
+            <SupportersList creator={creatorData} />
           </TabsContent>
 
           <TabsContent value="withdraw" className="space-y-6">

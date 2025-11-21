@@ -19,20 +19,22 @@ export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestP
   })
   const [isLoading, setIsLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const availableBalance = currentBalance * 0.95
 
   const handleSubmit = async () => {
-    if (!withdrawalData.amount || !withdrawalData.bank_account) {
-      alert("Please fill in all required fields")
+    if (!withdrawalData.amount || !withdrawalData.bank_account || !withdrawalData.account_holder) {
+      setErrorMessage("Please fill in all required fields.")
       return
     }
 
     if (Number.parseFloat(withdrawalData.amount) > availableBalance) {
-      alert("Insufficient balance")
+      setErrorMessage("Insufficient balance.")
       return
     }
 
+    setErrorMessage(null)
     setIsLoading(true)
     try {
       // Simulate withdrawal request submission
@@ -42,7 +44,7 @@ export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestP
       setWithdrawalData({ amount: "", bank_account: "", account_holder: "" })
     } catch (error) {
       console.error("Withdrawal error:", error)
-      alert("Withdrawal request failed")
+      setErrorMessage("Withdrawal request failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -125,6 +127,8 @@ export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestP
       >
         {isLoading ? "Processing..." : "Submit Withdrawal Request"}
       </Button>
+
+      {errorMessage && <p className="text-sm text-destructive text-center">{errorMessage}</p>}
 
       {submitted && (
         <Card className="bg-primary/10 border-primary/30 p-4">

@@ -10,6 +10,7 @@ import {
   Users, 
   Sparkles, 
   ArrowRight, 
+  ArrowLeft,
   CheckCircle2, 
   Plus, 
   Trash2,
@@ -20,6 +21,8 @@ import {
 } from "lucide-react"
 import { generateSupportLinkId } from "@/lib/utils/crypto"
 
+const CREATOR_USERNAMES_KEY = "bonocoin_creator_usernames"
+
 interface OnboardingProps {
   onSuccess: (data: { user: any; creator?: any }) => void
 }
@@ -29,12 +32,32 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [userData, setUserData] = useState<any>(null)
   const [creatorData, setCreatorData] = useState({
+    handle: "",
     channel_username: "",
     display_name: "",
     bio: "",
     links: [""],
   })
   const [wantsToBeCreator, setWantsToBeCreator] = useState<boolean | null>(null)
+  const [usernameError, setUsernameError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const loadReservedUsernames = () => {
+    try {
+      const stored = localStorage.getItem(CREATOR_USERNAMES_KEY)
+      return stored ? (JSON.parse(stored) as string[]) : []
+    } catch (error) {
+      console.error("Failed to read reserved usernames", error)
+      return []
+    }
+  }
+
+  const reserveUsername = (username: string) => {
+    const list = loadReservedUsernames()
+    if (!list.includes(username)) {
+      localStorage.setItem(CREATOR_USERNAMES_KEY, JSON.stringify([...list, username]))
+    }
+  }
 
   // Step 1: Welcome with animation
   if (step === 1) {
@@ -110,6 +133,15 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setStep(1)}
+            className="mb-4 flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
           <div className="text-center mb-8">
             <div className="text-6xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
             <h2 className="text-3xl font-bold text-foreground mb-2">Connect with Telegram</h2>
@@ -182,6 +214,15 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setStep(2)}
+            className="mb-4 flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
           <div className="text-center mb-8">
             <div className="text-6xl font-bold mb-4 neon-glow">₿</div>
             <h2 className="text-3xl font-bold text-foreground mb-2">Welcome!</h2>
@@ -278,10 +319,34 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     }
 
     const handleComplete = async () => {
-      if (!creatorData.channel_username || !creatorData.display_name) {
-        alert("Please fill in all required fields")
+      if (!creatorData.display_name.trim()) {
+        setFormError("Display name is required")
         return
       }
+
+      const usernameInput = creatorData.handle.trim()
+      if (!usernameInput) {
+        setUsernameError("Username is required")
+        return
+      }
+
+      const normalizedUsername = usernameInput.startsWith("@") ? usernameInput.slice(1) : usernameInput
+      const usernamePattern = /^[a-zA-Z0-9_]{3,20}$/
+      if (!usernamePattern.test(normalizedUsername)) {
+        setUsernameError("Use 3-20 letters, numbers, or underscores.")
+        return
+      }
+
+      const reserved = loadReservedUsernames()
+      if (reserved.includes(normalizedUsername.toLowerCase())) {
+        setUsernameError("That username is already taken.")
+        return
+      }
+
+      setUsernameError(null)
+      setFormError(null)
+
+      const formattedUsername = `@${normalizedUsername}`
 
       setIsLoading(true)
       try {
@@ -290,8 +355,9 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
         const mockCreator = {
           id: Math.random().toString(),
           user_id: userData.id,
-          channel_username: creatorData.channel_username,
-          display_name: creatorData.display_name,
+          handle: formattedUsername,
+          channel_username: creatorData.channel_username.trim(),
+          display_name: creatorData.display_name.trim(),
           bio: creatorData.bio,
           links: creatorData.links.filter((l) => l.trim()),
           support_link_id: generateSupportLinkId(),
@@ -299,10 +365,11 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
           type: "creator",
         }
 
+        reserveUsername(normalizedUsername.toLowerCase())
         onSuccess({ user: userData, creator: mockCreator })
       } catch (error) {
         console.error("Registration error:", error)
-        alert("Registration failed. Please try again.")
+        setFormError("Registration failed. Please try again.")
       } finally {
         setIsLoading(false)
       }
@@ -311,6 +378,15 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setStep(3)}
+            className="mb-4 flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
           <div className="text-center mb-8">
             <div className="text-6xl font-bold mb-4 neon-glow">₿</div>
             <h2 className="text-3xl font-bold text-foreground mb-2">Creator Profile</h2>
@@ -320,20 +396,24 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
           <Card className="bg-card/80 backdrop-blur-md border-border p-6 space-y-5 shadow-2xl">
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">
-                Channel Username *
+                 Username (permanent) *
               </label>
               <Input
-                value={creatorData.channel_username}
-                onChange={(e) =>
+                value={creatorData.handle}
+                onChange={(e) => {
                   setCreatorData({
                     ...creatorData,
-                    channel_username: e.target.value,
+                    handle: e.target.value,
                   })
-                }
-                placeholder="@mychannel"
+                  setUsernameError(null)
+                }}
+                placeholder="@mycreatorname"
                 className="bg-input border-border text-foreground"
               />
-              <p className="text-xs text-muted-foreground mt-1">Your Telegram channel name</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Choose a short unique handle (e.g. @techcreator). Usernames must be unique and cannot be changed later.
+              </p>
+              {usernameError && <p className="text-xs text-destructive mt-1">{usernameError}</p>}
             </div>
 
             <div>
@@ -348,6 +428,21 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
                 placeholder="Your Name"
                 className="bg-input border-border text-foreground"
               />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">
+                Telegram Channel or Group
+              </label>
+              <Input
+                value={creatorData.channel_username}
+                onChange={(e) =>
+                  setCreatorData({ ...creatorData, channel_username: e.target.value })
+                }
+                placeholder="@mytelegramchannel or https://t.me/mychannel"
+                className="bg-input border-border text-foreground"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Let supporters find your Telegram presence.</p>
             </div>
 
             <div>
@@ -399,6 +494,8 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               </div>
             </div>
           </Card>
+
+          {formError && <p className="text-sm text-destructive mb-4">{formError}</p>}
 
           <Button
             onClick={handleComplete}

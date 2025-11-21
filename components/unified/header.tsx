@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { LogOut, Share2, Bell, Settings, Coins, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -11,6 +12,7 @@ interface UnifiedHeaderProps {
 
 export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
   const router = useRouter()
+  const [copyFeedback, setCopyFeedback] = useState(false)
 
   const handleLogout = () => {
     localStorage.removeItem("user")
@@ -22,7 +24,8 @@ export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
     if (creator) {
       const supportLink = `${window.location.origin}/support/${creator.support_link_id}`
       navigator.clipboard.writeText(supportLink)
-      alert("Support link copied to clipboard!")
+      setCopyFeedback(true)
+      setTimeout(() => setCopyFeedback(false), 2000)
     }
   }
 
@@ -41,15 +44,22 @@ export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
         </div>
         <div className="flex gap-2">
           {creator && (
-            <Button
-              onClick={handleShareLink}
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 rounded-full bg-secondary/10 text-secondary hover:bg-secondary/20 hover:text-secondary transition-all"
-              title="Copy support link"
-            >
-              <Share2 className="w-5 h-5" />
-            </Button>
+            <div className="relative">
+              <Button
+                onClick={handleShareLink}
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full bg-secondary/10 text-secondary hover:bg-secondary/20 hover:text-secondary transition-all"
+                title="Copy support link"
+              >
+                <Share2 className="w-5 h-5" />
+              </Button>
+              {copyFeedback && (
+                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] text-secondary">
+                  Copied!
+                </span>
+              )}
+            </div>
           )}
           <Button
             variant="ghost"

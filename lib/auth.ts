@@ -16,6 +16,7 @@ export interface Creator {
   id: number
   user_id: number
   channel_username: string
+  handle?: string
   display_name: string
   bio: string | null
   links: string[]

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { LogOut, Share2, Coins } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -10,6 +11,7 @@ interface CreatorHeaderProps {
 
 export default function CreatorHeader({ creator }: CreatorHeaderProps) {
   const router = useRouter()
+  const [copyFeedback, setCopyFeedback] = useState(false)
 
   const handleLogout = () => {
     localStorage.removeItem("creator")
@@ -20,7 +22,8 @@ export default function CreatorHeader({ creator }: CreatorHeaderProps) {
   const handleShareLink = () => {
     const supportLink = `${window.location.origin}/support/${creator.support_link_id}`
     navigator.clipboard.writeText(supportLink)
-    alert("Support link copied to clipboard!")
+    setCopyFeedback(true)
+    setTimeout(() => setCopyFeedback(false), 2000)
   }
 
   const handleSwitchToUser = () => {
@@ -44,15 +47,22 @@ export default function CreatorHeader({ creator }: CreatorHeaderProps) {
           >
             <Coins className="w-5 h-5" />
           </Button>
-          <Button
-            onClick={handleShareLink}
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 text-muted-foreground hover:text-primary"
-            title="Copy support link"
-          >
-            <Share2 className="w-5 h-5" />
-          </Button>
+          <div className="relative">
+            <Button
+              onClick={handleShareLink}
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-muted-foreground hover:text-primary"
+              title="Copy support link"
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+            {copyFeedback && (
+              <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-primary">
+                Copied!
+              </span>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="icon"
