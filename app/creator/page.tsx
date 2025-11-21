@@ -19,6 +19,14 @@ export default function CreatorPage() {
         if (storedCreator) {
           setCreator(JSON.parse(storedCreator))
           setIsAuthenticated(true)
+        } else {
+          // If no creator but user exists, they can still access creator onboarding
+          // The onboarding will create a creator profile linked to their user account
+          const storedUser = localStorage.getItem("user")
+          if (storedUser) {
+            // User exists, they can proceed to onboarding
+            setIsAuthenticated(false)
+          }
         }
       } catch (error) {
         console.error("[v0] Creator auth check error:", error)
@@ -72,6 +80,8 @@ export default function CreatorPage() {
           setCreator(creatorData)
           setIsAuthenticated(true)
           localStorage.setItem("creator", JSON.stringify(creatorData))
+          // Redirect to home page to use unified dashboard
+          router.push("/")
         }}
       />
     )

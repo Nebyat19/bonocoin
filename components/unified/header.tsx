@@ -1,23 +1,16 @@
 "use client"
 
-import { LogOut, Settings, Bell, Users } from "lucide-react"
+import { LogOut, Share2, Bell, Settings, Coins, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
 
-interface UserHeaderProps {
+interface UnifiedHeaderProps {
   user: any
+  creator?: any
 }
 
-export default function UserHeader({ user }: UserHeaderProps) {
+export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
   const router = useRouter()
-  const [isCreator, setIsCreator] = useState(false)
-
-  useEffect(() => {
-    // Check if user is also a creator
-    const storedCreator = localStorage.getItem("creator")
-    setIsCreator(!!storedCreator)
-  }, [])
 
   const handleLogout = () => {
     localStorage.removeItem("user")
@@ -25,37 +18,37 @@ export default function UserHeader({ user }: UserHeaderProps) {
     window.location.href = "/"
   }
 
-  const handleSwitchToCreator = () => {
-    router.push("/creator")
+  const handleShareLink = () => {
+    if (creator) {
+      const supportLink = `${window.location.origin}/support/${creator.support_link_id}`
+      navigator.clipboard.writeText(supportLink)
+      alert("Support link copied to clipboard!")
+    }
   }
 
   return (
     <header className="bg-gradient-to-b from-card/60 to-background/40 backdrop-blur-md border-b border-primary/20 sticky top-0 z-10">
       <div className="max-w-md mx-auto flex items-center justify-between p-4">
-        <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Welcome back</p>
-          <p className="font-bold text-lg text-foreground">{user.first_name || "Supporter"}</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center border border-primary/20">
+            <span className="text-2xl font-bold neon-glow">₿</span>
+          </div>
+          <div>
+            <p className="font-bold text-lg text-foreground">
+              {creator?.display_name || user.first_name || "User"}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
-          {isCreator ? (
+          {creator && (
             <Button
+              onClick={handleShareLink}
               variant="ghost"
               size="icon"
-              onClick={handleSwitchToCreator}
               className="h-10 w-10 rounded-full bg-secondary/10 text-secondary hover:bg-secondary/20 hover:text-secondary transition-all"
-              title="Switch to Creator Dashboard"
+              title="Copy support link"
             >
-              <Users className="w-5 h-5" />
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSwitchToCreator}
-              className="h-10 w-10 rounded-full bg-secondary/10 text-secondary hover:bg-secondary/20 hover:text-secondary transition-all"
-              title="Become a Creator"
-            >
-              <Users className="w-5 h-5" />
+              <Share2 className="w-5 h-5" />
             </Button>
           )}
           <Button
@@ -86,3 +79,4 @@ export default function UserHeader({ user }: UserHeaderProps) {
     </header>
   )
 }
+

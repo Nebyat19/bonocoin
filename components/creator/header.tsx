@@ -1,15 +1,19 @@
 "use client"
 
-import { LogOut, Share2 } from "lucide-react"
+import { LogOut, Share2, Coins } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 interface CreatorHeaderProps {
   creator: any
 }
 
 export default function CreatorHeader({ creator }: CreatorHeaderProps) {
+  const router = useRouter()
+
   const handleLogout = () => {
     localStorage.removeItem("creator")
+    localStorage.removeItem("user")
     window.location.href = "/"
   }
 
@@ -17,6 +21,10 @@ export default function CreatorHeader({ creator }: CreatorHeaderProps) {
     const supportLink = `${window.location.origin}/support/${creator.support_link_id}`
     navigator.clipboard.writeText(supportLink)
     alert("Support link copied to clipboard!")
+  }
+
+  const handleSwitchToUser = () => {
+    router.push("/user")
   }
 
   return (
@@ -27,6 +35,15 @@ export default function CreatorHeader({ creator }: CreatorHeaderProps) {
           <p className="font-semibold text-foreground">{creator.display_name}</p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={handleSwitchToUser}
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground hover:text-primary"
+            title="Support Other Creators"
+          >
+            <Coins className="w-5 h-5" />
+          </Button>
           <Button
             onClick={handleShareLink}
             variant="ghost"

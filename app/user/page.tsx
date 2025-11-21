@@ -20,6 +20,24 @@ export default function UserPage() {
         if (storedUser) {
           setUser(JSON.parse(storedUser))
           setIsAuthenticated(true)
+        } else {
+          // If no user but creator exists, create a user entry from creator
+          const storedCreator = localStorage.getItem("creator")
+          if (storedCreator) {
+            const creator = JSON.parse(storedCreator)
+            // Create a user object from creator data
+            const userFromCreator = {
+              id: creator.user_id || creator.id,
+              telegram_id: creator.user_id || creator.id,
+              username: creator.channel_username,
+              first_name: creator.display_name,
+              balance: 0, // User balance is separate from creator balance
+              type: "user",
+            }
+            setUser(userFromCreator)
+            setIsAuthenticated(true)
+            localStorage.setItem("user", JSON.stringify(userFromCreator))
+          }
         }
       } catch (error) {
         console.error("Auth check error:", error)
