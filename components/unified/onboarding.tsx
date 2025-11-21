@@ -176,7 +176,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
                   id: Math.random().toString(),
                   telegram_id: "123456789",
                   username: "user_" + Date.now(),
-                  first_name: "User",
+                  first_name: "Bonower",
                   last_name: "Name",
                   balance: 0,
                   type: "user",

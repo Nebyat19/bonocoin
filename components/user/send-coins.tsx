@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,12 +19,24 @@ interface CreatorResult {
   support_link_id: string
 }
 
+const SUPPORTER_NAME_KEY = "bonocoin_supporter_name"
+
 export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps) {
   const [creatorIdentifier, setCreatorIdentifier] = useState("")
   const [amount, setAmount] = useState("5")
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCreator, setSelectedCreator] = useState<CreatorResult | null>(null)
   const [lookupError, setLookupError] = useState<string | null>(null)
+  const [supporterName, setSupporterName] = useState("")
+  const [anonymousSupport, setAnonymousSupport] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(SUPPORTER_NAME_KEY)
+    if (stored) {
+      setSupporterName(stored)
+    }
+  }, [])
 
   const handleSelectCreator = async () => {
     if (!creatorIdentifier.trim()) {
@@ -76,6 +88,17 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
   }
 
   const handleSendCoins = async () => {
+    const trimmedName = supporterName.trim()
+    if (!anonymousSupport && !trimmedName) {
+      setNameError("Please enter a display name or choose to stay anonymous.")
+      return
+    }
+
+    setNameError(null)
+    if (!anonymousSupport) {
+      localStorage.setItem(SUPPORTER_NAME_KEY, trimmedName)
+    }
+
     setIsLoading(true)
     try {
       // Simulate transfer
@@ -98,7 +121,7 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
           <div className="p-3 bg-secondary/20 rounded-xl border border-secondary/30 glow-pink">
             <Heart className="w-5 h-5 text-secondary" />
           </div>
-          <h3 className="font-bold text-lg text-foreground">Send Support</h3>
+          <h3 className="font-bold text-lg text-foreground">Drop a Bono</h3>
         </div>
 
         <div className="space-y-2">
@@ -147,7 +170,43 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
+                Your Display Name
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setAnonymousSupport(!anonymousSupport)
+                  setNameError(null)
+                }}
+                className="text-[11px] text-secondary hover:text-secondary/80 underline-offset-2 hover:underline"
+              >
+                {anonymousSupport ? "Use my name" : "Stay anonymous"}
+              </button>
+            </div>
+            {anonymousSupport ? (
+              <p className="text-xs text-muted-foreground">
+                You will appear as <span className="font-semibold text-secondary">Anonymous Bonower</span>.
+              </p>
+            ) : (
+              <Input
+                value={supporterName}
+                onChange={(e) => setSupporterName(e.target.value)}
+                placeholder="e.g. CryptoFan42"
+                className="bg-input/50 border-primary/20 text-foreground focus:border-primary/50 rounded-xl"
+              />
+            )}
+            {!anonymousSupport && (
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Creators will see this name when you send support.
+              </p>
+            )}
+            {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
+          </div>
+
           <div>
             <label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
               Amount to Send (BONO)

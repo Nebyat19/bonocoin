@@ -12,6 +12,8 @@ interface UserHeaderProps {
 export default function UserHeader({ user }: UserHeaderProps) {
   const router = useRouter()
   const [isCreator, setIsCreator] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     // Check if user is also a creator
@@ -61,6 +63,10 @@ export default function UserHeader({ user }: UserHeaderProps) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => {
+              setShowNotifications(!showNotifications)
+              setShowSettings(false)
+            }}
             className="h-10 w-10 rounded-full bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary glow-neon transition-all"
           >
             <Bell className="w-5 h-5" />
@@ -69,6 +75,10 @@ export default function UserHeader({ user }: UserHeaderProps) {
           <Button
             variant="ghost"
             size="icon"
+            onClick={() => {
+              setShowSettings(!showSettings)
+              setShowNotifications(false)
+            }}
             className="h-10 w-10 rounded-full bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary transition-all"
           >
             <Settings className="w-5 h-5" />
@@ -83,6 +93,21 @@ export default function UserHeader({ user }: UserHeaderProps) {
           </Button>
         </div>
       </div>
+      {showNotifications && (
+        <div className="max-w-md mx-auto px-4">
+          <div className="bg-card border border-border rounded-lg p-4 text-sm text-muted-foreground">
+            <p>No notifications yet. We’ll keep you posted when creators respond.</p>
+          </div>
+        </div>
+      )}
+      {showSettings && (
+        <div className="max-w-md mx-auto px-4">
+          <div className="bg-card border border-border rounded-lg p-4 text-sm text-muted-foreground space-y-2">
+            <p className="font-semibold text-foreground">Settings</p>
+            <p>Profile & preferences coming soon.</p>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

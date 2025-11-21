@@ -14,6 +14,13 @@ export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
   const router = useRouter()
   const [copyFeedback, setCopyFeedback] = useState(false)
 
+  const displayName =
+    creator?.display_name ||
+    user?.first_name ||
+    user?.display_name ||
+    user?.username ||
+    "Bonower"
+
   const handleLogout = () => {
     localStorage.removeItem("user")
     localStorage.removeItem("creator")
@@ -38,7 +45,7 @@ export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
           </div>
           <div>
             <p className="font-bold text-lg text-foreground">
-              {creator?.display_name || user.first_name || "User"}
+              {displayName}
             </p>
           </div>
         </div>
