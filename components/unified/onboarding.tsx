@@ -78,12 +78,10 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
   const [wantsToBeCreator, setWantsToBeCreator] = useState<boolean | null>(null)
   const [usernameError, setUsernameError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
-  const [isTelegramAvailable, setIsTelegramAvailable] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      setIsTelegramAvailable(true)
       window.Telegram.WebApp.ready?.()
       window.Telegram.WebApp.expand?.()
     }
@@ -112,14 +110,8 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     setFormError(null)
     try {
       const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
-      
-      // If Telegram is not available, automatically use demo mode
+
       if (!telegramApp?.initData || !telegramApp.initDataUnsafe?.user) {
-        if (!isTelegramAvailable) {
-          console.log("Telegram not available, using demo mode")
-          handleDemoLogin()
-          return
-        }
         setAuthError("Please open this Mini App inside Telegram to continue.")
         setIsLoading(false)
         return
@@ -135,12 +127,6 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}))
-        // If Supabase is not configured, fall back to demo mode
-        if (payload.error?.includes("Supabase") || payload.error?.includes("configured")) {
-          console.log("Supabase not configured, using demo mode:", payload.error)
-          handleDemoLogin()
-          return
-        }
         setAuthError(payload.error || "Unable to authenticate with Telegram.")
         setIsLoading(false)
         return
@@ -151,39 +137,16 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
       setStep(3)
     } catch (error) {
       console.error("Telegram auth error:", error)
-      // If there's a network error or Supabase issue, try demo mode
-      if (!isTelegramAvailable) {
-        console.log("Telegram auth error, using demo mode")
-        handleDemoLogin()
-        return
-      }
       setAuthError("Failed to connect to Telegram. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDemoLogin = () => {
-    const demoUser: StoredUser = {
-      id: "demo-user",
-      telegram_id: "demo-user",
-      first_name: "Demo",
-      last_name: "User",
-      username: "demo_bonower",
-      display_name: "Demo Bonower",
-      balance: 0,
-      type: "user",
-    }
-    setUserData(demoUser)
-    setAuthError(null)
-    setFormError(null)
-    setStep(3)
-  }
-
   // Step 1: Welcome with animation
   if (step === 1) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
@@ -198,7 +161,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
                 <Sparkles className="w-8 h-8 text-primary animate-spin-slow" />
               </div>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-3 bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
               Welcome to Bonocoin
             </h1>
             <p className="text-muted-foreground text-lg">Support creators. Get rewarded. Be both.</p>
@@ -230,7 +193,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
 
           <Button
             onClick={() => setStep(2)}
-            className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all animate-fade-in"
+            className="w-full bg-linear-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all animate-fade-in"
           >
             Get Started
             <ArrowRight className="w-5 h-5 ml-2" />
@@ -244,7 +207,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
   // Step 2: Telegram Login
   if (step === 2) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Button
             variant="ghost"
@@ -295,23 +258,15 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
             {isLoading ? (
               <>
                 <div className="animate-spin mr-2">₿</div>
-                {isTelegramAvailable ? "Connecting..." : "Starting Demo..."}
+                Connecting...
               </>
             ) : (
               <>
                 <Zap className="w-5 h-5 mr-2" />
-                {isTelegramAvailable ? "Login with Telegram" : "Continue (Demo Mode)"}
+                Login with Telegram
               </>
             )}
           </Button>
-
-          {!isTelegramAvailable && (
-            <div className="mt-4 text-center">
-              <p className="text-xs text-muted-foreground">
-                💡 Testing in browser? The app will use demo mode automatically.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     )
@@ -320,7 +275,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
   // Step 3: Ask if they want to be a creator
   if (step === 3) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Button
             variant="ghost"
@@ -398,7 +353,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
               }
             }}
             disabled={wantsToBeCreator === null}
-            className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 h-14 text-lg font-semibold text-primary-foreground shadow-lg disabled:opacity-50"
+            className="w-full bg-linear-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 h-14 text-lg font-semibold text-primary-foreground shadow-lg disabled:opacity-50"
           >
             Continue
             <ArrowRight className="w-5 h-5 ml-2" />
@@ -494,7 +449,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Button
             variant="ghost"
@@ -618,7 +573,7 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
           <Button
             onClick={handleComplete}
             disabled={isLoading}
-            className="w-full mt-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 h-14 text-lg font-semibold text-primary-foreground shadow-lg"
+            className="w-full mt-6 bg-linear-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 h-14 text-lg font-semibold text-primary-foreground shadow-lg"
           >
             {isLoading ? (
               <>
