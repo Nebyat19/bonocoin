@@ -194,11 +194,13 @@ export async function createCreator(
     links?: string[]
   },
   supportLinkId: string,
+  handle?: string,
 ): Promise<Creator> {
   const { data: inserted, error } = await serverSupabase()
     .from("creators")
     .insert({
       user_id: userId,
+      handle: handle || null,
       channel_username: data.channel_username,
       display_name: data.display_name,
       bio: data.bio || null,

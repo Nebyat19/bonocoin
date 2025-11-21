@@ -25,6 +25,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
   const [copied, setCopied] = useState(false)
   const [copiedUsername, setCopiedUsername] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [profileData, setProfileData] = useState<ProfileFormState>({
     handle: creator.handle || creator.channel_username || "",
@@ -60,7 +61,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
     setTimeout(() => setCopiedUsername(false), 2000)
   }
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!profileData.display_name.trim()) {
       setFormError("Display name is required")
       return
@@ -72,29 +73,43 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
 
     const cleanedLinks = profileData.links.map((link) => link.trim()).filter(Boolean)
 
-    const updatedCreator = {
-      ...creator,
-      handle: formattedUsername,
-      channel_username: profileData.channel_username.trim(),
-      display_name: profileData.display_name.trim(),
-      bio: profileData.bio,
-      links: cleanedLinks,
-    }
+    setIsSaving(true)
+    setFormError(null)
 
     try {
-      localStorage.setItem("creator", JSON.stringify(updatedCreator))
+      const response = await fetch("/api/creator/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          creator_id: creator.id,
+          channel_username: profileData.channel_username.trim(),
+          display_name: profileData.display_name.trim(),
+          bio: profileData.bio || null,
+          links: cleanedLinks,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to update profile")
+      }
+
+      const updatedCreator = await response.json()
+      onProfileUpdate?.(updatedCreator)
+      setProfileData({
+        ...profileData,
+        handle: formattedUsername,
+        links: cleanedLinks,
+      })
+      setIsEditing(false)
     } catch (error) {
       console.error("Failed to save creator profile:", error)
+      setFormError(error instanceof Error ? error.message : "Failed to save profile")
+    } finally {
+      setIsSaving(false)
     }
-
-    onProfileUpdate?.(updatedCreator)
-    setProfileData({
-      ...profileData,
-      handle: formattedUsername,
-      links: cleanedLinks,
-    })
-    setFormError(null)
-    setIsEditing(false)
   }
 
   const handleCancelEdit = () => {

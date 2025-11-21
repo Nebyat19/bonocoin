@@ -15,8 +15,7 @@ export default function CreatorHeader({ creator }: CreatorHeaderProps) {
   const [copyFeedback, setCopyFeedback] = useState(false)
 
   const handleLogout = () => {
-    localStorage.removeItem("creator")
-    localStorage.removeItem("user")
+    // Clear session by redirecting (Telegram will handle re-auth)
     window.location.href = "/"
   }
 

@@ -17,14 +17,27 @@ export default function UserHeader({ user }: UserHeaderProps) {
   const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
-    // Check if user is also a creator
-    const storedCreator = localStorage.getItem("creator")
-    setIsCreator(!!storedCreator)
-  }, [])
+    // Check if user is also a creator by fetching from API
+    const checkCreator = async () => {
+      try {
+        const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id || user.telegram_id
+        if (telegramId) {
+          const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+          if (response.ok) {
+            const data = await response.json()
+            setIsCreator(!!data.creator)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking creator status:", error)
+      }
+    }
+    checkCreator()
+  }, [user])
 
   const handleLogout = () => {
-    localStorage.removeItem("user")
-    localStorage.removeItem("creator")
+    // Clear session by redirecting (Telegram will handle re-auth)
     window.location.href = "/"
   }
 

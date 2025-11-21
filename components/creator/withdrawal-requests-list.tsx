@@ -1,34 +1,45 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Clock, CheckCircle, XCircle } from "lucide-react"
 
-export default function WithdrawalRequestsList() {
-  // Mock withdrawal requests data
-  const withdrawalRequests = [
-    {
-      id: "1",
-      amount: 500,
-      status: "pending",
-      requested_at: "2024-01-18T10:30:00",
-      account_holder: "John Doe",
-    },
-    {
-      id: "2",
-      amount: 300,
-      status: "approved",
-      requested_at: "2024-01-15T14:20:00",
-      approved_at: "2024-01-16T09:15:00",
-      account_holder: "John Doe",
-    },
-    {
-      id: "3",
-      amount: 200,
-      status: "rejected",
-      requested_at: "2024-01-10T11:00:00",
-      account_holder: "John Doe",
-    },
-  ]
+interface WithdrawalRequest {
+  id: string
+  amount: number
+  status: "pending" | "approved" | "rejected"
+  requested_at: string
+  approved_at?: string | null
+  bank_account?: any
+}
+
+interface WithdrawalRequestsListProps {
+  creatorId: number | string
+}
+
+export default function WithdrawalRequestsList({ creatorId }: WithdrawalRequestsListProps) {
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchWithdrawals = async () => {
+      try {
+        const response = await fetch(`/api/creator/withdrawals?creator_id=${creatorId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setWithdrawalRequests(data)
+        }
+      } catch (error) {
+        console.error("Error fetching withdrawals:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (creatorId) {
+      fetchWithdrawals()
+    }
+  }, [creatorId])
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -50,6 +61,16 @@ export default function WithdrawalRequestsList() {
       default:
         return "bg-secondary/10 border-secondary/20"
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Card className="bg-card border-border p-6">
+          <p className="text-muted-foreground text-sm text-center py-8">Loading withdrawal requests...</p>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -77,7 +98,7 @@ export default function WithdrawalRequestsList() {
                         {request.amount.toFixed(2)} BONO
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(request.requested_at).toLocaleDateString("en-US", {
+                        {new Date(request.requested_at).toLocaleString("en-US", {
                           year: "numeric",
                           month: "short",
                           day: "numeric",

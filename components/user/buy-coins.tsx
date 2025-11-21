@@ -20,13 +20,46 @@ export default function BuyCoins({ onSuccess }: BuyCoinsProps) {
   const handlePurchase = async () => {
     setIsLoading(true)
     try {
-      // Simulate payment processing with Chapa
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Get current user ID from Telegram
+      const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+      const telegramId = telegramApp?.initDataUnsafe?.user?.id
+      
+      if (!telegramId) {
+        throw new Error("User not authenticated")
+      }
+
+      // Get user from API
+      const userResponse = await fetch(`/api/user?telegram_id=${telegramId}`)
+      if (!userResponse.ok) {
+        throw new Error("Failed to get user information")
+      }
+      const userData = await userResponse.json()
+
+      // Process purchase (in production, this would integrate with payment gateway)
+      // For now, we'll add coins directly after "payment"
+      const purchaseResponse = await fetch("/api/purchase", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userData.user.id,
+          amount: Number.parseFloat(amount),
+          transaction_ref: `purchase_${Date.now()}`,
+        }),
+      })
+
+      if (!purchaseResponse.ok) {
+        const errorData = await purchaseResponse.json().catch(() => ({}))
+        throw new Error(errorData.error || "Purchase failed")
+      }
+
+      const purchaseData = await purchaseResponse.json()
       onSuccess(Number.parseFloat(amount))
       setAmount("10")
-      // Show success toast
     } catch (error) {
       console.error("Purchase error:", error)
+      // You might want to show an error toast here
     } finally {
       setIsLoading(false)
     }

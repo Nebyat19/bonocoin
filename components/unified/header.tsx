@@ -21,8 +21,7 @@ export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
     "Bonower"
 
   const handleLogout = () => {
-    localStorage.removeItem("user")
-    localStorage.removeItem("creator")
+    // Clear session by redirecting (Telegram will handle re-auth)
     window.location.href = "/"
   }
 

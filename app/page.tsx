@@ -10,16 +10,6 @@ interface OnboardingResult {
   creator?: StoredCreator
 }
 
-const parseStoredItem = <T,>(key: string): T | null => {
-  try {
-    const storedValue = localStorage.getItem(key)
-    return storedValue ? (JSON.parse(storedValue) as T) : null
-  } catch (error) {
-    console.error(`Failed to parse stored item "${key}"`, error)
-    return null
-  }
-}
-
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState<StoredUser | null>(null)
@@ -27,19 +17,26 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for existing authentication
+    // Check for existing authentication via Telegram
     const initAuth = async () => {
       try {
-        const storedUser = parseStoredItem<StoredUser>("user")
-        const storedCreator = parseStoredItem<StoredCreator>("creator")
+        const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id
 
-        if (storedUser) {
-          setUser(storedUser)
-          setIsAuthenticated(true)
+        if (!telegramId) {
+          setIsLoading(false)
+          return
         }
 
-        if (storedCreator) {
-          setCreator(storedCreator)
+        // Fetch user data from API
+        const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user)
+          if (data.creator) {
+            setCreator(data.creator)
+          }
+          setIsAuthenticated(true)
         }
       } catch (error) {
         console.error("Auth check error:", error)
@@ -51,25 +48,31 @@ export default function Home() {
     initAuth()
   }, [])
 
-  const handleOnboardingSuccess = (data: OnboardingResult) => {
+  const handleOnboardingSuccess = async (data: OnboardingResult) => {
     setUser(data.user)
     if (data.creator) {
       setCreator(data.creator)
-      localStorage.setItem("creator", JSON.stringify(data.creator))
     }
-    localStorage.setItem("user", JSON.stringify(data.user))
     setIsAuthenticated(true)
-  }
-
-  // Check if creator was just created (e.g., from /creator page)
-  useEffect(() => {
-    if (!creator) {
-      const storedCreator = parseStoredItem<StoredCreator>("creator")
-      if (storedCreator) {
-        setCreator(storedCreator)
+    
+    // Refresh data from API to ensure consistency
+    try {
+      const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+      const telegramId = telegramApp?.initDataUnsafe?.user?.id || data.user.telegram_id
+      if (telegramId) {
+        const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+        if (response.ok) {
+          const apiData = await response.json()
+          setUser(apiData.user)
+          if (apiData.creator) {
+            setCreator(apiData.creator)
+          }
+        }
       }
+    } catch (error) {
+      console.error("Error refreshing user data:", error)
     }
-  }, [creator])
+  }
 
   if (isLoading) {
     return (

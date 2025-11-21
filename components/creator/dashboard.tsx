@@ -44,7 +44,7 @@ export default function CreatorDashboard({ creator }: CreatorDashboardProps) {
           </TabsContent>
 
           <TabsContent value="supporters" className="space-y-6">
-            <SupportersList />
+            <SupportersList creatorId={creatorData.id!} />
           </TabsContent>
 
           <TabsContent value="withdraw" className="space-y-6">

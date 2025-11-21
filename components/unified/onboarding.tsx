@@ -23,7 +23,7 @@ import {
 import { generateSupportLinkId } from "@/lib/utils/crypto"
 import type { StoredCreator, StoredUser } from "@/types/models"
 
-const CREATOR_USERNAMES_KEY = "bonocoin_creator_usernames"
+// Creator usernames are now stored in the database, no need for localStorage
 
 interface OnboardingResult {
   user: StoredUser
@@ -87,20 +87,17 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     }
   }, [])
 
-  const loadReservedUsernames = () => {
+  const checkUsernameAvailability = async (username: string): Promise<boolean> => {
     try {
-      const stored = localStorage.getItem(CREATOR_USERNAMES_KEY)
-      return stored ? (JSON.parse(stored) as string[]) : []
+      const response = await fetch(`/api/creator/check-username?handle=${encodeURIComponent(username)}`)
+      if (response.ok) {
+        const data = await response.json()
+        return data.available === true
+      }
+      return false
     } catch (error) {
-      console.error("Failed to read reserved usernames", error)
-      return []
-    }
-  }
-
-  const reserveUsername = (username: string) => {
-    const list = loadReservedUsernames()
-    if (!list.includes(username)) {
-      localStorage.setItem(CREATOR_USERNAMES_KEY, JSON.stringify([...list, username]))
+      console.error("Error checking username:", error)
+      return false
     }
   }
 
@@ -410,8 +407,9 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
         return
       }
 
-      const reserved = loadReservedUsernames()
-      if (reserved.includes(normalizedUsername.toLowerCase())) {
+      // Check username availability via API
+      const isAvailable = await checkUsernameAvailability(normalizedUsername.toLowerCase())
+      if (!isAvailable) {
         setUsernameError("That username is already taken.")
         return
       }
@@ -419,30 +417,45 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
       setUsernameError(null)
       setFormError(null)
 
-      const formattedUsername = `@${normalizedUsername}`
-
       setIsLoading(true)
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+        // Create creator via API
+        const response = await fetch("/api/creator/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            handle: normalizedUsername.toLowerCase(),
+            channel_username: creatorData.channel_username.trim(),
+            display_name: creatorData.display_name.trim(),
+            bio: creatorData.bio || null,
+            links: creatorData.links.filter((l) => l.trim()),
+          }),
+        })
 
-        const mockCreator: StoredCreator = {
-          id: Math.random().toString(),
-          user_id: currentUser.id,
-          handle: formattedUsername,
-          channel_username: creatorData.channel_username.trim(),
-          display_name: creatorData.display_name.trim(),
-          bio: creatorData.bio,
-          links: creatorData.links.filter((l) => l.trim()),
-          support_link_id: generateSupportLinkId(),
-          balance: 0,
-          type: "creator",
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || "Failed to create creator profile")
         }
 
-        reserveUsername(normalizedUsername.toLowerCase())
-        onSuccess({ user: currentUser, creator: mockCreator })
+        const createdCreator = await response.json()
+        
+        // Refresh user data to get updated creator info
+        const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id || currentUser.telegram_id
+        
+        const userResponse = await fetch(`/api/user?telegram_id=${telegramId}`)
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          onSuccess({ user: userData.user, creator: userData.creator })
+        } else {
+          onSuccess({ user: currentUser, creator: createdCreator })
+        }
       } catch (error) {
         console.error("Registration error:", error)
-        setFormError("Registration failed. Please try again.")
+        setFormError(error instanceof Error ? error.message : "Registration failed. Please try again.")
       } finally {
         setIsLoading(false)
       }

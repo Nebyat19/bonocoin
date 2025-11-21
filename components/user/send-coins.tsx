@@ -19,8 +19,6 @@ interface CreatorResult {
   support_link_id: string
 }
 
-const SUPPORTER_NAME_KEY = "bonocoin_supporter_name"
-
 export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps) {
   const [creatorIdentifier, setCreatorIdentifier] = useState("")
   const [amount, setAmount] = useState("5")
@@ -31,13 +29,6 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
   const [anonymousSupport, setAnonymousSupport] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const stored = localStorage.getItem(SUPPORTER_NAME_KEY)
-    if (stored) {
-      setSupporterName(stored)
-    }
-  }, [])
-
   const handleSelectCreator = async () => {
     if (!creatorIdentifier.trim()) {
       setLookupError("Please enter a creator username or support link")
@@ -47,38 +38,15 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
     setIsLoading(true)
     setLookupError(null)
     try {
-      // Simulate looking up creator by username or link
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      const input = creatorIdentifier.trim()
-
-      if (input.length < 3) {
-        throw new Error("Identifier too short")
+      const response = await fetch(`/api/creator/lookup?identifier=${encodeURIComponent(creatorIdentifier.trim())}`)
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Creator not found")
       }
 
-      let mockCreator: CreatorResult
-
-      if (input.startsWith("http") || input.includes("/support/")) {
-        const parts = input.split("/")
-        const linkId = parts.filter(Boolean).pop() || "support_link"
-        mockCreator = {
-          id: linkId,
-          handle: `@${linkId.slice(0, 12)}`,
-          display_name: "Creator " + linkId.slice(0, 4).toUpperCase(),
-          channel_username: `@${linkId.slice(0, 10)}`,
-          support_link_id: linkId,
-        }
-      } else {
-        const username = input.startsWith("@") ? input : `@${input}`
-        mockCreator = {
-          id: username,
-          handle: username,
-          display_name: username.replace("@", "").replace(/_/g, " "),
-          channel_username: username,
-          support_link_id: `support_${username.replace("@", "")}`,
-        }
-      }
-
-      setSelectedCreator(mockCreator)
+      const creator = await response.json()
+      setSelectedCreator(creator)
     } catch (error) {
       const message = error instanceof Error ? error.message : "Creator not found. Double-check the username or link."
       setLookupError(message)
@@ -94,21 +62,63 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
       return
     }
 
-    setNameError(null)
-    if (!anonymousSupport) {
-      localStorage.setItem(SUPPORTER_NAME_KEY, trimmedName)
+    if (!selectedCreator) {
+      setLookupError("Please select a creator first")
+      return
     }
+
+    setNameError(null)
+    setLookupError(null)
 
     setIsLoading(true)
     try {
-      // Simulate transfer
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Get current user ID from Telegram
+      const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+      const telegramId = telegramApp?.initDataUnsafe?.user?.id
+      
+      if (!telegramId) {
+        throw new Error("User not authenticated")
+      }
+
+      // Get user from API
+      const userResponse = await fetch(`/api/user?telegram_id=${telegramId}`)
+      if (!userResponse.ok) {
+        throw new Error("Failed to get user information")
+      }
+      const userData = await userResponse.json()
+
+      // Perform transfer
+      const transferResponse = await fetch("/api/transfer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from_user_id: userData.user.id,
+          to_creator_id: selectedCreator.id,
+          amount: Number.parseFloat(amount),
+          message: null,
+          supporter_name: anonymousSupport ? null : trimmedName,
+        }),
+      })
+
+      if (!transferResponse.ok) {
+        const errorData = await transferResponse.json().catch(() => ({}))
+        throw new Error(errorData.error || "Transfer failed")
+      }
+
       onSuccess(Number.parseFloat(amount))
       setCreatorIdentifier("")
       setAmount("5")
       setSelectedCreator(null)
     } catch (error) {
       console.error("Send error:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to send coins"
+      if (errorMessage.includes("balance") || errorMessage.includes("Insufficient")) {
+        setLookupError("Insufficient balance. Please buy more coins first.")
+      } else {
+        setLookupError(errorMessage)
+      }
     } finally {
       setIsLoading(false)
     }

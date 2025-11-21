@@ -1,39 +1,54 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react"
 
-export default function CreatorTransactions() {
-  // Mock transactions data
-  const transactions = [
-    {
-      id: "1",
-      type: "received",
-      supporter_name: "Alice",
-      amount: 50,
-      date: "2 hours ago",
-    },
-    {
-      id: "2",
-      type: "received",
-      supporter_name: "Bob",
-      amount: 25,
-      date: "5 hours ago",
-    },
-    {
-      id: "3",
-      type: "received",
-      supporter_name: "Charlie",
-      amount: 100,
-      date: "1 day ago",
-    },
-    {
-      id: "4",
-      type: "withdrawal",
-      amount: 200,
-      date: "2 days ago",
-    },
-  ]
+interface Transaction {
+  id: string
+  type: "received" | "withdrawal"
+  supporter_name?: string
+  amount: number
+  date: string
+}
+
+interface CreatorTransactionsProps {
+  creatorId: number | string
+}
+
+export default function CreatorTransactions({ creatorId }: CreatorTransactionsProps) {
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await fetch(`/api/creator/transactions?creator_id=${creatorId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setTransactions(data)
+        }
+      } catch (error) {
+        console.error("Error fetching transactions:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (creatorId) {
+      fetchTransactions()
+    }
+  }, [creatorId])
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Card className="bg-card border-border p-6">
+          <p className="text-muted-foreground text-sm text-center py-8">Loading transactions...</p>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">

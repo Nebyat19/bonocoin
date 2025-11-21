@@ -3,17 +3,7 @@
 import { useState, useEffect } from "react"
 import UserDashboard from "@/components/user/dashboard"
 import UserOnboarding from "@/components/user/onboarding"
-import type { StoredCreator, StoredUser } from "@/types/models"
-
-const parseItem = <T,>(key: string): T | null => {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : null
-  } catch (error) {
-    console.error(`Failed to parse ${key}`, error)
-    return null
-  }
-}
+import type { StoredUser } from "@/types/models"
 
 export default function UserPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -24,30 +14,20 @@ export default function UserPage() {
     // Check for user authentication from Telegram WebApp
     const initUser = async () => {
       try {
-        // In a real app, this would validate the Telegram Web App data
-        const storedUser = parseItem<StoredUser>("user")
-        if (storedUser) {
-          setUser(storedUser)
+        const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id
+
+        if (!telegramId) {
+          setIsLoading(false)
+          return
+        }
+
+        // Fetch user data from API
+        const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user)
           setIsAuthenticated(true)
-        } else {
-          // If no user but creator exists, create a user entry from creator
-          const storedCreator = parseItem<StoredCreator>("creator")
-          if (storedCreator) {
-            // Create a user object from creator data
-            const creatorId = storedCreator.user_id ?? storedCreator.id ?? ""
-            const userFromCreator: StoredUser = {
-              id: String(creatorId),
-              telegram_id: String(creatorId),
-              username: storedCreator.handle ?? storedCreator.channel_username ?? null,
-              display_name: storedCreator.display_name ?? storedCreator.handle ?? null,
-              first_name: storedCreator.display_name ?? "Creator",
-              balance: 0, // User balance is separate from creator balance
-              type: "user",
-            }
-            setUser(userFromCreator)
-            setIsAuthenticated(true)
-            localStorage.setItem("user", JSON.stringify(userFromCreator))
-          }
         }
       } catch (error) {
         console.error("Auth check error:", error)
@@ -75,10 +55,23 @@ export default function UserPage() {
   if (!isAuthenticated || !user) {
     return (
       <UserOnboarding
-        onSuccess={(userData) => {
+        onSuccess={async (userData) => {
           setUser(userData)
           setIsAuthenticated(true)
-          localStorage.setItem("user", JSON.stringify(userData))
+          // Refresh from API to ensure consistency
+          try {
+            const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+            const telegramId = telegramApp?.initDataUnsafe?.user?.id || userData.telegram_id
+            if (telegramId) {
+              const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+              if (response.ok) {
+                const apiData = await response.json()
+                setUser(apiData.user)
+              }
+            }
+          } catch (error) {
+            console.error("Error refreshing user data:", error)
+          }
         }}
       />
     )

@@ -1,30 +1,51 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Users } from "lucide-react"
 
-export default function SupportersList() {
-  // Mock supporters data
-  const supporters = [
-    {
-      id: "1",
-      name: "Anonymous",
-      total_sent: 100,
-      first_supported_at: "2024-01-15",
-    },
-    {
-      id: "2",
-      name: "John Supporter",
-      total_sent: 250,
-      first_supported_at: "2024-01-10",
-    },
-    {
-      id: "3",
-      name: "Jane Enthusiast",
-      total_sent: 75,
-      first_supported_at: "2024-01-20",
-    },
-  ]
+interface Supporter {
+  id: string
+  supporter_name: string
+  total_sent: number
+  first_supported_at: string
+}
+
+interface SupportersListProps {
+  creatorId: number | string
+}
+
+export default function SupportersList({ creatorId }: SupportersListProps) {
+  const [supporters, setSupporters] = useState<Supporter[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSupporters = async () => {
+      try {
+        const response = await fetch(`/api/creator/supporters?creator_id=${creatorId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setSupporters(data)
+        }
+      } catch (error) {
+        console.error("Error fetching supporters:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (creatorId) {
+      fetchSupporters()
+    }
+  }, [creatorId])
+
+  if (isLoading) {
+    return (
+      <Card className="bg-card border-border p-6">
+        <p className="text-muted-foreground text-sm text-center py-8">Loading supporters...</p>
+      </Card>
+    )
+  }
 
   return (
     <Card className="bg-card border-border p-6">
@@ -40,13 +61,13 @@ export default function SupportersList() {
             className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/80 transition-colors"
           >
             <div className="flex-1">
-              <p className="font-semibold text-foreground text-sm">{supporter.name}</p>
+              <p className="font-semibold text-foreground text-sm">{supporter.supporter_name}</p>
               <p className="text-xs text-muted-foreground">
                 Since {new Date(supporter.first_supported_at).toLocaleDateString()}
               </p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-secondary">{supporter.total_sent} BONO</p>
+              <p className="font-bold text-secondary">{supporter.total_sent.toFixed(2)} BONO</p>
               <p className="text-xs text-muted-foreground">total</p>
             </div>
           </div>

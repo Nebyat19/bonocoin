@@ -138,16 +138,16 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
                   />
                 </TabsContent>
                 <TabsContent value="supporters" className="space-y-6">
-                  <SupportersList />
+                  <SupportersList creatorId={currentCreator.id!} />
                 </TabsContent>
                 <TabsContent value="withdraw" className="space-y-6">
                   <WithdrawalRequest currentBalance={creatorBalance} />
                 </TabsContent>
                 <TabsContent value="requests" className="space-y-6">
-                  <WithdrawalRequestsList />
+                  <WithdrawalRequestsList creatorId={currentCreator.id!} />
                 </TabsContent>
                 <TabsContent value="transactions" className="space-y-6">
-                  <CreatorTransactions />
+                  <CreatorTransactions creatorId={currentCreator.id!} />
                 </TabsContent>
               </Tabs>
             </TabsContent>

@@ -186,6 +186,46 @@ export interface Database {
           },
         ]
       }
+      supporters: {
+        Row: {
+          id: number
+          user_id: number
+          creator_id: number
+          total_sent: number
+          supporter_name: string | null
+          first_supported_at: string
+        }
+        Insert: {
+          id?: number
+          user_id: number
+          creator_id: number
+          total_sent?: number
+          supporter_name?: string | null
+          first_supported_at?: string
+        }
+        Update: {
+          id?: number
+          user_id?: number
+          creator_id?: number
+          total_sent?: number
+          supporter_name?: string | null
+          first_supported_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supporters_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
+            referencedColumns: ["id"],
+          },
+          {
+            foreignKeyName: "supporters_creator_id_fkey",
+            columns: ["creator_id"],
+            referencedRelation: "creators",
+            referencedColumns: ["id"],
+          },
+        ]
+      }
     }
     Views: {
       [key: string]: never
