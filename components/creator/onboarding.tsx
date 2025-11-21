@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { LogIn, Plus, Trash2 } from "lucide-react"
+import { LogIn, Plus, Trash2, ArrowLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { generateSupportLinkId } from "@/lib/utils/crypto"
 import type { StoredCreator } from "@/types/models"
 
@@ -14,6 +15,7 @@ interface CreatorOnboardingProps {
 }
 
 interface CreatorFormState {
+  handle: string
   channel_username: string
   display_name: string
   bio: string
@@ -21,14 +23,17 @@ interface CreatorFormState {
 }
 
 export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps) {
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<CreatorFormState>({
+    handle: "",
     channel_username: "",
     display_name: "",
     bio: "",
     links: [""],
   })
   const [formError, setFormError] = useState<string | null>(null)
+  const [handleError, setHandleError] = useState<string | null>(null)
 
   const handleAddLink = () => {
     setFormData({
@@ -51,11 +56,24 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
   }
 
   const handleRegister = async () => {
-    if (!formData.channel_username || !formData.display_name) {
+    if (!formData.handle || !formData.channel_username || !formData.display_name) {
       setFormError("Please fill in all required fields.")
       return
     }
 
+    const normalizedHandle = formData.handle.startsWith("@")
+      ? formData.handle.slice(1)
+      : formData.handle
+
+    const handlePattern = /^[a-zA-Z0-9_]{3,20}$/
+    if (!handlePattern.test(normalizedHandle)) {
+      setHandleError("Use 3-20 letters, numbers, or underscores.")
+      return
+    }
+
+    setHandleError(null)
+
+    setFormError(null)
     setIsLoading(true)
     try {
       // Simulate registration
@@ -64,6 +82,7 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
       const mockCreator: StoredCreator = {
         id: Math.random().toString(),
         user_id: "creator_user_" + Date.now(),
+        handle: `@${normalizedHandle}`,
         channel_username: formData.channel_username,
         display_name: formData.display_name,
         bio: formData.bio,
@@ -85,6 +104,17 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+        </div>
         <div className="text-center mb-8">
           <div className="text-5xl font-bold mb-4 neon-glow">₿</div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Creator Profile</h1>
@@ -92,6 +122,24 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
         </div>
 
         <Card className="bg-card border-border p-6 space-y-5">
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground mb-2 block">Creator Username (permanent) *</label>
+            <Input
+              value={formData.handle}
+              onChange={(e) => {
+                setFormData({ ...formData, handle: e.target.value })
+                setHandleError(null)
+                setFormError(null)
+              }}
+              placeholder="@mycreatorname"
+              className="bg-input border-border text-foreground"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Choose a unique handle (e.g. @techcreator). This cannot be changed later.
+            </p>
+            {handleError && <p className="text-xs text-destructive mt-1">{handleError}</p>}
+          </div>
+
           <div>
             <label className="text-xs font-semibold text-muted-foreground mb-2 block">Channel Username *</label>
             <Input

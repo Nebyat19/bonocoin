@@ -157,6 +157,15 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
           {!currentCreator && (
             <TabsContent value="become-creator" className="space-y-6">
               <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 rounded-lg p-8 text-center">
+                <div className="flex justify-start mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("support")}
+                    className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                  >
+                    ← Back 
+                  </button>
+                </div>
                 <div className="text-6xl font-bold mb-4 neon-glow animate-bounce-slow">₿</div>
                 <h2 className="text-2xl font-bold text-foreground mb-2">Become a Creator</h2>
                 <p className="text-muted-foreground mb-6">
