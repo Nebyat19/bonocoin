@@ -56,22 +56,25 @@ export default function Home() {
     setIsAuthenticated(true)
     
     // Refresh data from API to ensure consistency
-    try {
-      const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
-      const telegramId = telegramApp?.initDataUnsafe?.user?.id || data.user.telegram_id
-      if (telegramId) {
-        const response = await fetch(`/api/user?telegram_id=${telegramId}`)
-        if (response.ok) {
-          const apiData = await response.json()
-          setUser(apiData.user)
-          if (apiData.creator) {
-            setCreator(apiData.creator)
+    // Add a small delay to ensure database is ready
+    setTimeout(async () => {
+      try {
+        const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id || data.user.telegram_id
+        if (telegramId) {
+          const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+          if (response.ok) {
+            const apiData = await response.json()
+            setUser(apiData.user)
+            if (apiData.creator) {
+              setCreator(apiData.creator)
+            }
           }
         }
+      } catch (error) {
+        console.error("Error refreshing user data:", error)
       }
-    } catch (error) {
-      console.error("Error refreshing user data:", error)
-    }
+    }, 1000)
   }
 
   if (isLoading) {

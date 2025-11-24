@@ -14,7 +14,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const creator = await getCreatorByUserId(user.id)
+    // Ensure user.id is a number
+    const userId = typeof user.id === "string" ? Number.parseInt(user.id, 10) : user.id
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 500 })
+    }
+
+    const creator = await getCreatorByUserId(userId)
 
     return NextResponse.json({
       user: {

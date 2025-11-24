@@ -442,15 +442,36 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
 
         const createdCreator = await response.json()
         
+        // Small delay to ensure database transaction is committed
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        
         // Refresh user data to get updated creator info
         const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
         const telegramId = telegramApp?.initDataUnsafe?.user?.id || currentUser.telegram_id
         
-        const userResponse = await fetch(`/api/user?telegram_id=${telegramId}`)
-        if (userResponse.ok) {
-          const userData = await userResponse.json()
+        // Try to fetch updated user data with retry
+        let userData = null
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const userResponse = await fetch(`/api/user?telegram_id=${telegramId}`)
+            if (userResponse.ok) {
+              userData = await userResponse.json()
+              if (userData.creator) {
+                break // Creator found, exit retry loop
+              }
+            }
+          } catch (error) {
+            console.error(`Attempt ${attempt + 1} failed:`, error)
+          }
+          if (attempt < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 500)) // Wait before retry
+          }
+        }
+        
+        if (userData && userData.creator) {
           onSuccess({ user: userData.user, creator: userData.creator })
         } else {
+          // Fallback to created creator data if API doesn't return it yet
           onSuccess({ user: currentUser, creator: createdCreator })
         }
       } catch (error) {

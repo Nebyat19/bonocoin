@@ -11,8 +11,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    // Convert user_id to number
+    const userIdNum = typeof user_id === "string" ? Number.parseInt(user_id, 10) : user_id
+    if (isNaN(userIdNum)) {
+      return NextResponse.json({ error: "Invalid user ID" }, { status: 400 })
+    }
+
     // Check if user already has a creator profile
-    const existing = await getCreatorByUserId(user_id)
+    const existing = await getCreatorByUserId(userIdNum)
     if (existing) {
       return NextResponse.json({ error: "User already has a creator profile" }, { status: 400 })
     }
@@ -34,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     const supportLinkId = generateSupportLinkId()
     const creator = await createCreator(
-      user_id,
+      userIdNum,
       {
         channel_username,
         display_name,
