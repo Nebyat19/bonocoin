@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { LogIn, Plus, Trash2, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { generateSupportLinkId } from "@/lib/utils/crypto"
 import type { StoredCreator } from "@/types/models"
 
 interface CreatorOnboardingProps {
@@ -72,30 +71,92 @@ export default function CreatorOnboarding({ onSuccess }: CreatorOnboardingProps)
     }
 
     setHandleError(null)
-
     setFormError(null)
     setIsLoading(true)
-    try {
-      // Simulate registration
-      await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      const mockCreator: StoredCreator = {
-        id: Math.random().toString(),
-        user_id: "creator_user_" + Date.now(),
-        handle: `@${normalizedHandle}`,
-        channel_username: formData.channel_username,
-        display_name: formData.display_name,
-        bio: formData.bio,
-        links: formData.links.filter((l) => l.trim()),
-        support_link_id: generateSupportLinkId(),
-        balance: 0,
-        type: "creator",
+    try {
+      // Get current user ID from Telegram or dev mode
+      const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+      const isDevMode = typeof window !== "undefined" && 
+        (process.env.NEXT_PUBLIC_DEV_MODE === "true" || 
+         window.location.hostname === "localhost" || 
+         window.location.hostname === "127.0.0.1")
+      
+      let userId: number | string | null = null
+
+      if (isDevMode || telegramApp?.initDataUnsafe?.user?.id) {
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id || "123456789"
+        
+        // Get user from API
+        const userResponse = await fetch(`/api/user?telegram_id=${telegramId}`)
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          userId = userData.user.id
+        } else if (isDevMode) {
+          // In dev mode, try to create user first
+          const devAuthResponse = await fetch("/api/dev-auth", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              telegram_id: "123456789",
+              first_name: "Test",
+              last_name: "User",
+              username: "testuser",
+            }),
+          })
+          if (devAuthResponse.ok) {
+            const devData = await devAuthResponse.json()
+            userId = devData.user.id
+          }
+        }
       }
 
-      onSuccess(mockCreator)
+      if (!userId) {
+        throw new Error("User not found. Please log in first.")
+      }
+
+      // Check username availability
+      const checkResponse = await fetch(`/api/creator/check-username?handle=${encodeURIComponent(normalizedHandle.toLowerCase())}`)
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json()
+        if (!checkData.available) {
+          setHandleError("That username is already taken.")
+          setIsLoading(false)
+          return
+        }
+      }
+
+      // Create creator via API
+      const response = await fetch("/api/creator/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          handle: normalizedHandle.toLowerCase(),
+          channel_username: formData.channel_username.trim(),
+          display_name: formData.display_name.trim(),
+          bio: formData.bio || null,
+          links: formData.links.filter((l) => l.trim()),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to create creator profile")
+      }
+
+      const createdCreator = await response.json()
+      
+      // Return the created creator immediately - no need to wait
+      // The parent component will refresh in the background
+      onSuccess(createdCreator)
     } catch (error) {
       console.error("Registration error:", error)
-      setFormError("Registration failed. Please try again.")
+      setFormError(error instanceof Error ? error.message : "Registration failed. Please try again.")
     } finally {
       setIsLoading(false)
     }

@@ -20,7 +20,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid user ID" }, { status: 500 })
     }
 
-    const creator = await getCreatorByUserId(userId)
+    // Try to get creator, but with a short timeout
+    // If it takes too long, return null and frontend will load it separately
+    let creator: Awaited<ReturnType<typeof getCreatorByUserId>> = null
+    try {
+      // Use Promise.race with a timeout to prevent blocking
+      const creatorPromise = getCreatorByUserId(userId)
+      const timeoutPromise = new Promise<null>((resolve) => 
+        setTimeout(() => resolve(null), 800) // 800ms timeout - fast enough
+      )
+      
+      const result = await Promise.race([creatorPromise, timeoutPromise])
+      creator = result
+    } catch (error) {
+      // If error, just continue without creator - frontend will load it
+      console.error("Error fetching creator (non-blocking):", error)
+    }
 
     return NextResponse.json({
       user: {

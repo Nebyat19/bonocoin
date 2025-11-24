@@ -17,7 +17,36 @@ export default function CreatorPage() {
     const initCreator = async () => {
       try {
         const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
-        const telegramId = telegramApp?.initDataUnsafe?.user?.id
+        const isDevMode = typeof window !== "undefined" && 
+          (process.env.NEXT_PUBLIC_DEV_MODE === "true" || 
+           window.location.hostname === "localhost" || 
+           window.location.hostname === "127.0.0.1")
+        
+        let telegramId: number | string | undefined = telegramApp?.initDataUnsafe?.user?.id
+
+        // In dev mode, try to authenticate if no Telegram data
+        if (isDevMode && !telegramId) {
+          try {
+            const devAuthResponse = await fetch("/api/dev-auth", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                telegram_id: "123456789",
+                first_name: "Test",
+                last_name: "User",
+                username: "testuser",
+              }),
+            })
+
+            if (devAuthResponse.ok) {
+              telegramId = "123456789"
+            }
+          } catch (devError) {
+            console.error("Dev auth error:", devError)
+          }
+        }
 
         if (!telegramId) {
           setIsLoading(false)
@@ -82,37 +111,11 @@ export default function CreatorPage() {
     return (
       <CreatorOnboarding
         onSuccess={async (creatorData) => {
-          setCreator(creatorData)
-          setIsAuthenticated(true)
-          // Refresh from API to ensure consistency
-          try {
-            const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
-            const telegramId = telegramApp?.initDataUnsafe?.user?.id
-            if (telegramId) {
-              // Wait a bit for database to commit
-              await new Promise((resolve) => setTimeout(resolve, 1000))
-              
-              // Try to fetch creator data with retry
-              for (let attempt = 0; attempt < 3; attempt++) {
-                const response = await fetch(`/api/user?telegram_id=${telegramId}`)
-                if (response.ok) {
-                  const apiData = await response.json()
-                  if (apiData.creator) {
-                    setCreator(apiData.creator)
-                    break
-                  }
-                }
-                if (attempt < 2) {
-                  await new Promise((resolve) => setTimeout(resolve, 500))
-                }
-              }
-            }
-          } catch (error) {
-            console.error("Error refreshing creator data:", error)
-          }
-          // Redirect to home page to use unified dashboard
-          // Use window.location to force a full page reload and fetch fresh data
-          window.location.href = "/"
+          // After creating creator, redirect back to unified dashboard
+          // The unified dashboard will automatically show the Creator tab
+          // Wait a moment for database to commit, then redirect with flag
+          await new Promise((resolve) => setTimeout(resolve, 500))
+          window.location.href = "/?created=true"
         }}
       />
     )

@@ -27,14 +27,20 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
   const [creatorBalance, setCreatorBalance] = useState(Number(creator?.balance ?? 0))
   const [currentCreator, setCurrentCreator] = useState<StoredCreator | null>(creator ?? null)
   const [transactionRefreshTrigger, setTransactionRefreshTrigger] = useState(0)
+  const [withdrawalRefreshTrigger, setWithdrawalRefreshTrigger] = useState(0)
 
   // Update currentCreator when creator prop changes
   useEffect(() => {
     setCurrentCreator(creator ?? null)
     if (creator) {
       setCreatorBalance(Number(creator.balance ?? 0))
-      // Switch to creator tab if creator was just created
-      setActiveTab("creator")
+      // Switch to creator tab if creator was just created (check URL params)
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get("created") === "true") {
+        setActiveTab("creator")
+        // Clean up URL
+        window.history.replaceState({}, "", window.location.pathname)
+      }
     }
   }, [creator])
 
@@ -160,10 +166,20 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
                   <SupportersList creatorId={currentCreator.id!} />
                 </TabsContent>
                 <TabsContent value="withdraw" className="space-y-6">
-                  <WithdrawalRequest currentBalance={creatorBalance} />
+                  <WithdrawalRequest 
+                    currentBalance={creatorBalance} 
+                    creatorId={currentCreator.id!}
+                    onSuccess={() => {
+                      // Refresh withdrawal requests list
+                      setWithdrawalRefreshTrigger((prev) => prev + 1)
+                    }}
+                  />
                 </TabsContent>
                 <TabsContent value="requests" className="space-y-6">
-                  <WithdrawalRequestsList creatorId={currentCreator.id!} />
+                  <WithdrawalRequestsList 
+                    creatorId={currentCreator.id!} 
+                    refreshTrigger={withdrawalRefreshTrigger}
+                  />
                 </TabsContent>
                 <TabsContent value="transactions" className="space-y-6">
                   <CreatorTransactions creatorId={currentCreator.id!} />

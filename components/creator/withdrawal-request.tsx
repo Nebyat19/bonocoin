@@ -9,9 +9,11 @@ import { CreditCard } from "lucide-react"
 
 interface WithdrawalRequestProps {
   currentBalance: number
+  creatorId: number | string
+  onSuccess?: () => void // Callback to refresh the list
 }
 
-export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestProps) {
+export default function WithdrawalRequest({ currentBalance, creatorId, onSuccess }: WithdrawalRequestProps) {
   const [withdrawalData, setWithdrawalData] = useState({
     amount: "",
     bank_account: "",
@@ -29,6 +31,11 @@ export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestP
       return
     }
 
+    if (!creatorId) {
+      setErrorMessage("Creator ID is missing. Please refresh the page.")
+      return
+    }
+
     if (Number.parseFloat(withdrawalData.amount) > availableBalance) {
       setErrorMessage("Insufficient balance.")
       return
@@ -37,14 +44,50 @@ export default function WithdrawalRequest({ currentBalance }: WithdrawalRequestP
     setErrorMessage(null)
     setIsLoading(true)
     try {
-      // Simulate withdrawal request submission
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const amount = Number.parseFloat(withdrawalData.amount)
+      if (isNaN(amount) || amount <= 0) {
+        setErrorMessage("Please enter a valid amount.")
+        setIsLoading(false)
+        return
+      }
+
+      // Submit withdrawal request to API
+      const requestBody = {
+        creator_id: creatorId,
+        amount: amount,
+        bank_account: withdrawalData.bank_account.trim(),
+        account_holder: withdrawalData.account_holder.trim(),
+      }
+
+      console.log("Submitting withdrawal request:", { ...requestBody, creator_id: creatorId })
+
+      const response = await fetch("/api/withdrawals/request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMsg = errorData.error || `Failed to submit withdrawal request (${response.status})`
+        console.error("Withdrawal request error:", errorData)
+        throw new Error(errorMsg)
+      }
+
       setSubmitted(true)
-      setTimeout(() => setSubmitted(false), 3000)
       setWithdrawalData({ amount: "", bank_account: "", account_holder: "" })
+      
+      // Refresh the withdrawal requests list
+      if (onSuccess) {
+        onSuccess()
+      }
+      
+      setTimeout(() => setSubmitted(false), 3000)
     } catch (error) {
       console.error("Withdrawal error:", error)
-      setErrorMessage("Withdrawal request failed. Please try again.")
+      setErrorMessage(error instanceof Error ? error.message : "Withdrawal request failed. Please try again.")
     } finally {
       setIsLoading(false)
     }

@@ -15,15 +15,17 @@ interface WithdrawalRequest {
 
 interface WithdrawalRequestsListProps {
   creatorId: number | string
+  refreshTrigger?: number
 }
 
-export default function WithdrawalRequestsList({ creatorId }: WithdrawalRequestsListProps) {
+export default function WithdrawalRequestsList({ creatorId, refreshTrigger }: WithdrawalRequestsListProps) {
   const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchWithdrawals = async () => {
       try {
+        setIsLoading(true)
         const response = await fetch(`/api/creator/withdrawals?creator_id=${creatorId}`)
         if (response.ok) {
           const data = await response.json()
@@ -39,7 +41,7 @@ export default function WithdrawalRequestsList({ creatorId }: WithdrawalRequests
     if (creatorId) {
       fetchWithdrawals()
     }
-  }, [creatorId])
+  }, [creatorId, refreshTrigger])
 
   const getStatusIcon = (status: string) => {
     switch (status) {

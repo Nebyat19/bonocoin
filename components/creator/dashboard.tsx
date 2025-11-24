@@ -48,7 +48,7 @@ export default function CreatorDashboard({ creator }: CreatorDashboardProps) {
           </TabsContent>
 
           <TabsContent value="withdraw" className="space-y-6">
-            <WithdrawalRequest currentBalance={balance} />
+            <WithdrawalRequest currentBalance={balance} creatorId={creatorData.id!} />
           </TabsContent>
         </Tabs>
       </main>

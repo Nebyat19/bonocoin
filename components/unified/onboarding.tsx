@@ -107,6 +107,40 @@ export default function UnifiedOnboarding({ onSuccess }: OnboardingProps) {
     setFormError(null)
     try {
       const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+      // Check dev mode - in browser, we check if we're in development
+      const isDevMode = typeof window !== "undefined" && 
+        (process.env.NEXT_PUBLIC_DEV_MODE === "true" || 
+         window.location.hostname === "localhost" || 
+         window.location.hostname === "127.0.0.1")
+
+      // In dev mode, use dev auth endpoint
+      if (isDevMode && (!telegramApp?.initData || !telegramApp.initDataUnsafe?.user)) {
+        const response = await fetch("/api/dev-auth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            telegram_id: "123456789",
+            first_name: "Test",
+            last_name: "User",
+            username: "testuser",
+          }),
+        })
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}))
+          setAuthError(payload.error || "Unable to authenticate in dev mode.")
+          setIsLoading(false)
+          return
+        }
+
+        const payload = await response.json()
+        setUserData(payload.user as StoredUser)
+        setStep(3)
+        setIsLoading(false)
+        return
+      }
 
       if (!telegramApp?.initData || !telegramApp.initDataUnsafe?.user) {
         setAuthError("Please open this Mini App inside Telegram to continue.")
