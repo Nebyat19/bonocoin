@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
         type: "send" as const,
         creator: tx.to_creator?.display_name || tx.to_creator?.handle || "Creator",
         amount: Number(tx.amount),
-        date: new Date(tx.created_at).toLocaleString(),
+        date: new Date(tx.created_at).toISOString(),
         timestamp: new Date(tx.created_at).getTime(),
       }))
 
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
       type: "buy" as const,
       description: `Purchased ${Number(tx.amount)} BONO`,
       amount: Number(tx.amount),
-      date: new Date(tx.created_at).toLocaleString(),
+      date: new Date(tx.created_at).toISOString(),
       timestamp: new Date(tx.created_at).getTime(),
     }))
 

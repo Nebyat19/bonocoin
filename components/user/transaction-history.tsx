@@ -29,33 +29,10 @@ export default function UserTransactionHistory({ userId, refreshTrigger }: UserT
         const response = await fetch(`/api/user/transactions?user_id=${userId}`)
         if (response.ok) {
           const data = await response.json()
-          // Format dates to relative time
-          const formatted = data.map((tx: Transaction) => {
-            const date = new Date(tx.date)
-            const now = new Date()
-            const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-            let relativeTime: string
-
-            if (diffInSeconds < 60) {
-              relativeTime = "Just now"
-            } else if (diffInSeconds < 3600) {
-              const minutes = Math.floor(diffInSeconds / 60)
-              relativeTime = `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`
-            } else if (diffInSeconds < 86400) {
-              const hours = Math.floor(diffInSeconds / 3600)
-              relativeTime = `${hours} ${hours === 1 ? "hour" : "hours"} ago`
-            } else if (diffInSeconds < 604800) {
-              const days = Math.floor(diffInSeconds / 86400)
-              relativeTime = `${days} ${days === 1 ? "day" : "days"} ago`
-            } else {
-              relativeTime = date.toLocaleDateString()
-            }
-
-            return {
-              ...tx,
-              date: relativeTime,
-            }
-          })
+          const formatted = data.map((tx: Transaction) => ({
+            ...tx,
+            date: new Date(tx.date).toLocaleString(),
+          }))
           setTransactions(formatted)
         }
       } catch (error) {
