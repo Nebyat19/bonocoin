@@ -26,6 +26,7 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
   const [userBalance, setUserBalance] = useState(Number(user.balance ?? 0))
   const [creatorBalance, setCreatorBalance] = useState(Number(creator?.balance ?? 0))
   const [currentCreator, setCurrentCreator] = useState<StoredCreator | null>(creator ?? null)
+  const [transactionRefreshTrigger, setTransactionRefreshTrigger] = useState(0)
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -70,15 +71,23 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
                 <TabsTrigger value="send">Send</TabsTrigger>
               </TabsList>
               <TabsContent value="balance" className="space-y-6">
-                <UserTransactionHistory />
+                <UserTransactionHistory userId={user.id!} refreshTrigger={transactionRefreshTrigger} />
               </TabsContent>
               <TabsContent value="buy" className="space-y-6">
-                <BuyCoins onSuccess={(amount) => setUserBalance((prev) => prev + amount)} />
+                <BuyCoins
+                  onSuccess={(amount) => {
+                    setUserBalance((prev) => prev + amount)
+                    setTransactionRefreshTrigger((prev) => prev + 1)
+                  }}
+                />
               </TabsContent>
               <TabsContent value="send" className="space-y-6">
                 <SendCoins
                   currentBalance={userBalance}
-                  onSuccess={(amount) => setUserBalance((prev) => prev - amount)}
+                  onSuccess={(amount) => {
+                    setUserBalance((prev) => prev - amount)
+                    setTransactionRefreshTrigger((prev) => prev + 1)
+                  }}
                 />
               </TabsContent>
             </Tabs>

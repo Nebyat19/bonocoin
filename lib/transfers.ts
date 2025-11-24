@@ -98,8 +98,10 @@ export async function addCoinsToUser(userId: number, amount: number, transaction
       throw updateError
     }
 
+    // Store purchase transaction with user_id for tracking
+    // We'll use from_user_id to store the purchasing user (even though it's not a transfer)
     const { error: transactionError } = await supabase.from("transactions").insert({
-      from_user_id: null,
+      from_user_id: userId, // Store user_id here for purchase tracking
       to_creator_id: null,
       amount,
       transaction_type: "purchase",

@@ -16,6 +16,7 @@ interface UserDashboardProps {
 export default function UserDashboard({ user }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState("balance")
   const [balance, setBalance] = useState(Number(user.balance ?? 0))
+  const [transactionRefreshTrigger, setTransactionRefreshTrigger] = useState(0)
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -30,15 +31,26 @@ export default function UserDashboard({ user }: UserDashboardProps) {
 
           <TabsContent value="balance" className="space-y-6">
             <UserBalance balance={balance} />
-            <UserTransactionHistory />
+            <UserTransactionHistory userId={user.id!} refreshTrigger={transactionRefreshTrigger} />
           </TabsContent>
 
           <TabsContent value="buy" className="space-y-6">
-            <BuyCoins onSuccess={(amount) => setBalance((prev) => prev + amount)} />
+            <BuyCoins
+              onSuccess={(amount) => {
+                setBalance((prev) => prev + amount)
+                setTransactionRefreshTrigger((prev) => prev + 1)
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="send" className="space-y-6">
-            <SendCoins currentBalance={balance} onSuccess={(amount) => setBalance((prev) => prev - amount)} />
+            <SendCoins
+              currentBalance={balance}
+              onSuccess={(amount) => {
+                setBalance((prev) => prev - amount)
+                setTransactionRefreshTrigger((prev) => prev + 1)
+              }}
+            />
           </TabsContent>
         </Tabs>
       </main>
