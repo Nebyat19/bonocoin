@@ -1,53 +1,120 @@
 "use client"
 
-import { useParams } from "next/navigation"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+import { useEffect, useState } from "react"
+
 import PublicCreatorPage from "@/components/public/creator-page"
-import type { StoredCreator } from "@/types/models"
+import type { StoredCreator, StoredUser } from "@/types/models"
 
 type PublicCreator = StoredCreator & {
   balance: number
-  is_active: boolean
+  is_active?: boolean
 }
 
 export default function SupportPage() {
   const params = useParams()
   const linkId = params.linkId as string
   const [creator, setCreator] = useState<PublicCreator | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [viewer, setViewer] = useState<StoredUser | null>(null)
+  const [isCreatorLoading, setIsCreatorLoading] = useState(true)
+  const [isViewerLoading, setIsViewerLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadCreator = async () => {
       try {
-        // Mock loading creator by support link ID
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        const mockCreator: PublicCreator = {
-          id: "1",
-          display_name: "Tech Creator",
-          channel_username: "@techcreator",
-          bio: "Creating amazing tech content for everyone",
-          links: ["https://youtube.com/techcreator", "https://twitter.com/techcreator"],
-          support_link_id: linkId,
-          balance: 1250,
-          is_active: true,
+        setIsCreatorLoading(true)
+        const response = await fetch(`/api/public/creator/${linkId}`)
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || "Creator not found")
         }
-
-        setCreator(mockCreator)
+        const data = await response.json()
+        setCreator({
+          ...data,
+          links: Array.isArray(data.links) ? data.links : [],
+        })
+        setError(null)
       } catch (loadError) {
         console.error("Failed to load creator", loadError)
-        setError("Creator not found")
+        setError(loadError instanceof Error ? loadError.message : "Creator not found")
       } finally {
-        setIsLoading(false)
+        setIsCreatorLoading(false)
       }
     }
 
-    loadCreator()
+    if (linkId) {
+      loadCreator()
+    }
   }, [linkId])
 
-  if (isLoading) {
+  useEffect(() => {
+    const initViewer = async () => {
+      try {
+        const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+        const isDevMode =
+          typeof window !== "undefined" &&
+          (process.env.NEXT_PUBLIC_DEV_MODE === "true" || window.location.hostname === "localhost")
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id
+
+        if (isDevMode && !telegramId) {
+          const devAuthResponse = await fetch("/api/dev-auth", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              telegram_id: "123456789",
+              first_name: "Test",
+              last_name: "User",
+              username: "testuser",
+            }),
+          })
+
+          if (devAuthResponse.ok) {
+            const devData = await devAuthResponse.json()
+            setViewer(devData.user)
+            return
+          }
+        }
+
+        if (!telegramId) {
+          return
+        }
+
+        const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setViewer(data.user)
+        }
+      } catch (authError) {
+        console.error("Failed to load viewer:", authError)
+      } finally {
+        setIsViewerLoading(false)
+      }
+    }
+
+    initViewer()
+  }, [])
+
+  const handleRequireAuth = () => {
+    if (typeof window === "undefined") return
+    const returnUrl = encodeURIComponent(`/support/${linkId}`)
+    window.location.href = `/?fromSupport=${returnUrl}`
+  }
+
+  const handleBuyCoins = () => {
+    if (typeof window === "undefined") return
+    const returnUrl = encodeURIComponent(`/support/${linkId}`)
+    window.location.href = `/?tab=buy&fromSupport=${returnUrl}`
+  }
+
+  const handleBalanceUpdate = (newBalance: number) => {
+    setViewer((prev) => (prev ? { ...prev, balance: newBalance } : prev))
+  }
+
+  if (isCreatorLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -75,5 +142,14 @@ export default function SupportPage() {
     )
   }
 
-  return <PublicCreatorPage creator={creator} />
+  return (
+    <PublicCreatorPage
+      creator={creator}
+      viewer={viewer}
+      isViewerLoading={isViewerLoading}
+      onRequireAuth={handleRequireAuth}
+      onBuyCoins={handleBuyCoins}
+      onViewerBalanceChange={handleBalanceUpdate}
+    />
+  )
 }

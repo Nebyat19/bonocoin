@@ -5,6 +5,7 @@ import { LogOut, Share2, Coins } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import type { StoredCreator } from "@/types/models"
+import { getSupportShareLink } from "@/lib/support-link"
 
 interface CreatorHeaderProps {
   creator: StoredCreator
@@ -20,7 +21,7 @@ export default function CreatorHeader({ creator }: CreatorHeaderProps) {
   }
 
   const handleShareLink = () => {
-    const supportLink = `${window.location.origin}/support/${creator.support_link_id}`
+    const supportLink = getSupportShareLink(creator.support_link_id || "")
     navigator.clipboard.writeText(supportLink)
     setCopyFeedback(true)
     setTimeout(() => setCopyFeedback(false), 2000)

@@ -1,20 +1,35 @@
 "use client"
 
-import { useState } from "react"
-import { Card } from "@/components/ui/card"
+import { useEffect, useMemo, useState } from "react"
+
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Heart, LinkIcon, Share2, ArrowLeft } from "lucide-react"
-import type { StoredCreator } from "@/types/models"
+import { ArrowLeft, Coins, Heart, LinkIcon, LogIn, Share2, Wallet } from "lucide-react"
+
+import type { StoredCreator, StoredUser } from "@/types/models"
+import { getSupportShareLink } from "@/lib/support-link"
 
 interface CreatorPageProps {
   creator: StoredCreator & {
     balance: number
     is_active?: boolean
   }
+  viewer?: StoredUser | null
+  isViewerLoading?: boolean
+  onRequireAuth?: () => void
+  onBuyCoins?: () => void
+  onViewerBalanceChange?: (newBalance: number) => void
 }
 
-export default function PublicCreatorPage({ creator }: CreatorPageProps) {
+export default function PublicCreatorPage({
+  creator,
+  viewer,
+  isViewerLoading = false,
+  onRequireAuth,
+  onBuyCoins,
+  onViewerBalanceChange,
+}: CreatorPageProps) {
   const [showSupportForm, setShowSupportForm] = useState(false)
   const [supportAmount, setSupportAmount] = useState("10")
   const [supporterName, setSupporterName] = useState("")
@@ -23,30 +38,91 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
   const [supportStatus, setSupportStatus] = useState<string | null>(null)
   const [supportError, setSupportError] = useState<string | null>(null)
   const [shareStatus, setShareStatus] = useState<string | null>(null)
+  const [viewerBalance, setViewerBalance] = useState<number>(viewer?.balance ?? 0)
+
+  useEffect(() => {
+    setViewerBalance(viewer?.balance ?? 0)
+  }, [viewer?.balance])
+
+  const shareUrl = useMemo(() => getSupportShareLink(creator.support_link_id || ""), [creator.support_link_id])
+
+  const handleShare = () => {
+    try {
+      if (navigator.share) {
+        navigator
+          .share({
+            title: `${creator.display_name || "Creator"} on Bonocoin`,
+            text: "Support this creator on Bonocoin",
+            url: shareUrl,
+          })
+          .catch(() => {
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(shareUrl)
+            }
+          })
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl)
+      }
+      setShareStatus("Link copied!")
+      setTimeout(() => setShareStatus(null), 2000)
+    } catch (error) {
+      console.error("Share error:", error)
+    }
+  }
 
   const handleSendSupport = async () => {
-    setIsLoading(true)
     setSupportError(null)
+
+    if (!viewer) {
+      onRequireAuth?.()
+      return
+    }
+
+    const parsedAmount = Number.parseFloat(supportAmount)
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      setSupportError("Please enter a valid amount.")
+      return
+    }
+
+    if (parsedAmount > viewerBalance) {
+      setSupportError("You don’t have enough BONO. Please buy more coins first.")
+      return
+    }
+
+    setIsLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const response = await fetch("/api/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from_user_id: viewer.id,
+          to_creator_id: creator.id,
+          amount: parsedAmount,
+          message: supportMessage.trim() || null,
+          supporter_name: supporterName.trim() || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to send support")
+      }
+
+      const newBalance = viewerBalance - parsedAmount
+      setViewerBalance(newBalance)
+      onViewerBalanceChange?.(newBalance)
+
       setShowSupportForm(false)
       setSupportAmount("10")
       setSupporterName("")
       setSupportMessage("")
-      setSupportStatus("Thank you for your support! Your BONO is on the way.")
+      setSupportStatus("Thank you! Your BONO is on the way.")
     } catch (error) {
       console.error("Support error:", error)
-      setSupportError("Something went wrong. Please try again.")
+      setSupportError(error instanceof Error ? error.message : "Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleShare = () => {
-    const shareUrl = window.location.href
-    navigator.clipboard.writeText(shareUrl)
-    setShareStatus("Link copied!")
-    setTimeout(() => setShareStatus(null), 2000)
   }
 
   if (showSupportForm) {
@@ -69,6 +145,17 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
               <p className="text-xs text-muted-foreground mb-1">Enter your details</p>
               <p className="font-semibold text-foreground">{creator.display_name}</p>
               <p className="text-sm text-muted-foreground">{creator.channel_username}</p>
+            </div>
+
+            <div className="bg-background/60 border border-border rounded-lg p-3 text-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Available balance</p>
+                <p className="font-semibold text-foreground">{viewerBalance.toFixed(2)} BONO</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={onBuyCoins} className="text-xs">
+                <Coins className="w-4 h-4 mr-1" />
+                Buy coins
+              </Button>
             </div>
 
             <div>
@@ -184,13 +271,52 @@ export default function PublicCreatorPage({ creator }: CreatorPageProps) {
           </Card>
         )}
 
-        <Button
-          onClick={() => setShowSupportForm(true)}
-          className="w-full bg-secondary hover:bg-secondary/90 h-12 text-base font-semibold text-secondary-foreground sticky bottom-4"
-        >
-          <Heart className="w-5 h-5 mr-2" />
-          Send Support
-        </Button>
+        <Card className="bg-card border-border p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <Wallet className="w-5 h-5 text-secondary" />
+            <div>
+              <p className="text-xs text-muted-foreground">Your BONO Wallet</p>
+              <p className="text-lg font-semibold text-foreground">
+                {viewer ? `${viewerBalance.toFixed(2)} BONO` : "Connect to view"}
+              </p>
+            </div>
+          </div>
+
+          {isViewerLoading ? (
+            <p className="text-sm text-muted-foreground">Checking your wallet...</p>
+          ) : !viewer ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Sign in with Telegram to send BONO coins to {creator.display_name}.
+              </p>
+              <Button onClick={onRequireAuth} className="w-full bg-primary hover:bg-primary/90">
+                <LogIn className="w-4 h-4 mr-2" />
+                Start Supporting
+              </Button>
+            </div>
+          ) : viewerBalance <= 0 ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                You have 0 BONO coins. Top up to support {creator.display_name}.
+              </p>
+              <Button onClick={onBuyCoins} className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground">
+                <Coins className="w-4 h-4 mr-2" />
+                Buy BONO Coins
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Ready to send BONO to {creator.display_name}?</p>
+              <Button
+                onClick={() => setShowSupportForm(true)}
+                className="w-full bg-secondary hover:bg-secondary/90 h-12 text-base font-semibold text-secondary-foreground"
+              >
+                <Heart className="w-5 h-5 mr-2" />
+                Send Support
+              </Button>
+            </div>
+          )}
+        </Card>
         {supportStatus && <p className="text-center text-sm text-primary">{supportStatus}</p>}
       </main>
     </div>

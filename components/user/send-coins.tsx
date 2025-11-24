@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Heart, ChevronLeft } from "lucide-react"
+import { getSupportShareLink } from "@/lib/support-link"
 
 interface SendCoinsProps {
   currentBalance: number
@@ -176,7 +177,9 @@ export default function SendCoins({ currentBalance, onSuccess }: SendCoinsProps)
             {selectedCreator.channel_username && (
               <p className="text-xs text-muted-foreground">Channel: {selectedCreator.channel_username}</p>
             )}
-            <p className="text-[10px] text-muted-foreground">Support link: /support/{selectedCreator.support_link_id}</p>
+            <p className="text-[10px] text-muted-foreground break-all">
+              Support link: {getSupportShareLink(selectedCreator.support_link_id)}
+            </p>
           </div>
         </div>
 

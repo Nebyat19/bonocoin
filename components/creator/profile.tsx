@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { LinkIcon, FileText, Copy, Check, Plus, Trash2 } from "lucide-react"
 import type { StoredCreator } from "@/types/models"
+import { getSupportShareLink } from "@/lib/support-link"
 
 interface CreatorProfileProps {
   creator: StoredCreator
@@ -46,7 +47,7 @@ export default function CreatorProfile({ creator, onProfileUpdate }: CreatorProf
   }, [creator])
 
   const handleCopyLink = () => {
-    const supportLink = `${window.location.origin}/support/${creator.support_link_id}`
+    const supportLink = getSupportShareLink(creator.support_link_id || "")
     navigator.clipboard.writeText(supportLink)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { LogOut, Share2, Bell, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { StoredCreator, StoredUser } from "@/types/models"
+import { getSupportShareLink } from "@/lib/support-link"
 
 interface UnifiedHeaderProps {
   user: StoredUser
@@ -27,7 +28,7 @@ export default function UnifiedHeader({ user, creator }: UnifiedHeaderProps) {
 
   const handleShareLink = () => {
     if (creator) {
-      const supportLink = `${window.location.origin}/support/${creator.support_link_id}`
+      const supportLink = getSupportShareLink(creator.support_link_id || "")
       navigator.clipboard.writeText(supportLink)
       setCopyFeedback(true)
       setTimeout(() => setCopyFeedback(false), 2000)
