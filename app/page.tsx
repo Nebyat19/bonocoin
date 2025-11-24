@@ -46,6 +46,13 @@ export default function Home() {
     }
 
     initAuth()
+
+    // Also listen for focus events to refresh data when page becomes visible
+    const handleFocus = () => {
+      initAuth()
+    }
+    window.addEventListener("focus", handleFocus)
+    return () => window.removeEventListener("focus", handleFocus)
   }, [])
 
   const handleOnboardingSuccess = async (data: OnboardingResult) => {

@@ -89,11 +89,21 @@ export default function CreatorPage() {
             const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
             const telegramId = telegramApp?.initDataUnsafe?.user?.id
             if (telegramId) {
-              const response = await fetch(`/api/user?telegram_id=${telegramId}`)
-              if (response.ok) {
-                const apiData = await response.json()
-                if (apiData.creator) {
-                  setCreator(apiData.creator)
+              // Wait a bit for database to commit
+              await new Promise((resolve) => setTimeout(resolve, 1000))
+              
+              // Try to fetch creator data with retry
+              for (let attempt = 0; attempt < 3; attempt++) {
+                const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+                if (response.ok) {
+                  const apiData = await response.json()
+                  if (apiData.creator) {
+                    setCreator(apiData.creator)
+                    break
+                  }
+                }
+                if (attempt < 2) {
+                  await new Promise((resolve) => setTimeout(resolve, 500))
                 }
               }
             }
@@ -101,7 +111,8 @@ export default function CreatorPage() {
             console.error("Error refreshing creator data:", error)
           }
           // Redirect to home page to use unified dashboard
-          router.push("/")
+          // Use window.location to force a full page reload and fetch fresh data
+          window.location.href = "/"
         }}
       />
     )

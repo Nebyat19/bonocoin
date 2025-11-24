@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Coins, Users, Sparkles, User, Users as UsersIcon, CreditCard, FileText, History } from "lucide-react"
 import UnifiedHeader from "./header"
@@ -27,6 +27,16 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
   const [creatorBalance, setCreatorBalance] = useState(Number(creator?.balance ?? 0))
   const [currentCreator, setCurrentCreator] = useState<StoredCreator | null>(creator ?? null)
   const [transactionRefreshTrigger, setTransactionRefreshTrigger] = useState(0)
+
+  // Update currentCreator when creator prop changes
+  useEffect(() => {
+    setCurrentCreator(creator ?? null)
+    if (creator) {
+      setCreatorBalance(Number(creator.balance ?? 0))
+      // Switch to creator tab if creator was just created
+      setActiveTab("creator")
+    }
+  }, [creator])
 
   return (
     <div className="min-h-screen bg-background pb-20">
