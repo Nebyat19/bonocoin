@@ -4,11 +4,10 @@ import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Coins, Users, Sparkles, User, Users as UsersIcon, CreditCard, FileText, History } from "lucide-react"
 import UnifiedHeader from "./header"
-import UserBalance from "@/components/user/balance-card"
+import UnifiedBalanceCard from "./balance-card"
 import BuyCoins from "@/components/user/buy-coins"
 import SendCoins from "@/components/user/send-coins"
 import UserTransactionHistory from "@/components/user/transaction-history"
-import CreatorBalance from "@/components/creator/balance-card"
 import CreatorProfile from "@/components/creator/profile"
 import SupportersList from "@/components/creator/supporters-list"
 import WithdrawalRequest from "@/components/creator/withdrawal-request"
@@ -28,6 +27,11 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
   const [currentCreator, setCurrentCreator] = useState<StoredCreator | null>(creator ?? null)
   const [transactionRefreshTrigger, setTransactionRefreshTrigger] = useState(0)
   const [withdrawalRefreshTrigger, setWithdrawalRefreshTrigger] = useState(0)
+  
+  // Calculate unified balance
+  const totalBalance = userBalance + creatorBalance
+  const boughtBalance = userBalance
+  const receivedBalance = creatorBalance
 
   // Update currentCreator when creator prop changes
   useEffect(() => {
@@ -79,7 +83,11 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
 
           {/* Support Tab - User Features */}
           <TabsContent value="support" className="space-y-6">
-            <UserBalance balance={userBalance} />
+            <UnifiedBalanceCard 
+              totalBalance={totalBalance}
+              boughtBalance={boughtBalance}
+              receivedBalance={receivedBalance}
+            />
             <Tabs defaultValue="balance" className="w-full">
               <TabsList className="grid w-full grid-cols-3 bg-muted mb-4">
                 <TabsTrigger value="balance">Balance</TabsTrigger>
@@ -91,17 +99,42 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
               </TabsContent>
               <TabsContent value="buy" className="space-y-6">
                 <BuyCoins
-                  onSuccess={(amount) => {
-                    setUserBalance((prev) => prev + amount)
+                  onSuccess={async (amount) => {
+                    // Refresh balances from API to get accurate values
+                    try {
+                      const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+                      const telegramId = telegramApp?.initDataUnsafe?.user?.id
+                      if (telegramId) {
+                        const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+                        if (response.ok) {
+                          const data = await response.json()
+                          setUserBalance(Number(data.user.balance ?? 0))
+                          if (data.creator) {
+                            setCreatorBalance(Number(data.creator.balance ?? 0))
+                          }
+                        }
+                      }
+                    } catch (error) {
+                      console.error("Error refreshing balances:", error)
+                      // Fallback to local calculation
+                      setUserBalance((prev) => prev + amount)
+                    }
                     setTransactionRefreshTrigger((prev) => prev + 1)
                   }}
                 />
               </TabsContent>
               <TabsContent value="send" className="space-y-6">
                 <SendCoins
-                  currentBalance={userBalance}
+                  currentBalance={totalBalance}
                   onSuccess={(amount) => {
-                    setUserBalance((prev) => prev - amount)
+                    // Deduct from user balance first, then creator balance if needed
+                    if (userBalance >= amount) {
+                      setUserBalance((prev) => prev - amount)
+                    } else {
+                      const remaining = amount - userBalance
+                      setUserBalance(0)
+                      setCreatorBalance((prev) => prev - remaining)
+                    }
                     setTransactionRefreshTrigger((prev) => prev + 1)
                   }}
                 />
@@ -112,7 +145,11 @@ export default function UnifiedDashboard({ user, creator }: UnifiedDashboardProp
           {/* Creator Tab */}
           {currentCreator && (
             <TabsContent value="creator" className="space-y-6">
-              <CreatorBalance balance={creatorBalance} />
+              <UnifiedBalanceCard 
+                totalBalance={totalBalance}
+                boughtBalance={boughtBalance}
+                receivedBalance={receivedBalance}
+              />
               <Tabs defaultValue="profile" className="w-full">
                 <div className="overflow-x-auto mb-4 -mx-4 px-4 scrollbar-hide">
                   <TabsList className="inline-flex bg-muted p-1 h-auto gap-1">

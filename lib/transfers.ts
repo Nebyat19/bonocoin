@@ -6,6 +6,7 @@ export async function transferCoins(fromUserId: number, toCreatorId: number, amo
     throw new Error("Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.")
   }
   try {
+    // Get user balance
     const { data: sender, error: senderError } = await supabase
       .from("users")
       .select("id, balance")
@@ -20,20 +21,61 @@ export async function transferCoins(fromUserId: number, toCreatorId: number, amo
       throw new Error("User not found")
     }
 
-    if (sender.balance < amount) {
+    // Check if user has a creator account (for unified balance)
+    const { data: userCreator } = await supabase
+      .from("creators")
+      .select("id, balance")
+      .eq("user_id", fromUserId)
+      .maybeSingle()
+
+    const userBalance = Number(sender.balance ?? 0)
+    const senderCreatorBalance = userCreator ? Number(userCreator.balance ?? 0) : 0
+    const totalBalance = userBalance + senderCreatorBalance
+
+    if (totalBalance < amount) {
       throw new Error("Insufficient balance")
     }
 
+    // Deduct from user balance first, then creator balance if needed
+    let remainingAmount = amount
+    let newUserBalance = userBalance
+    let newSenderCreatorBalance = senderCreatorBalance
+
+    if (userBalance >= remainingAmount) {
+      // All from user balance
+      newUserBalance = userBalance - remainingAmount
+      remainingAmount = 0
+    } else {
+      // Use all user balance, then creator balance
+      remainingAmount = remainingAmount - userBalance
+      newUserBalance = 0
+      newSenderCreatorBalance = senderCreatorBalance - remainingAmount
+    }
+
+    // Update user balance
     const { error: debitError } = await supabase
       .from("users")
-      .update({ balance: sender.balance - amount })
+      .update({ balance: newUserBalance })
       .eq("id", fromUserId)
 
     if (debitError) {
       throw debitError
     }
 
-    const { data: creator, error: creatorError } = await supabase
+    // Update sender's creator balance if needed
+    if (userCreator && newSenderCreatorBalance !== senderCreatorBalance) {
+      const { error: creatorDebitError } = await supabase
+        .from("creators")
+        .update({ balance: newSenderCreatorBalance })
+        .eq("id", userCreator.id)
+
+      if (creatorDebitError) {
+        throw creatorDebitError
+      }
+    }
+
+    // Get recipient creator
+    const { data: recipientCreator, error: creatorError } = await supabase
       .from("creators")
       .select("id, balance")
       .eq("id", toCreatorId)
@@ -43,12 +85,12 @@ export async function transferCoins(fromUserId: number, toCreatorId: number, amo
       throw creatorError
     }
 
-    if (!creator) {
+    if (!recipientCreator) {
       throw new Error("Creator not found")
     }
 
-    const creatorBalance = creator.balance + amount * 0.95
-    const { error: creditError } = await supabase.from("creators").update({ balance: creatorBalance }).eq("id", toCreatorId)
+    const recipientCreatorBalance = recipientCreator.balance + amount * 0.95
+    const { error: creditError } = await supabase.from("creators").update({ balance: recipientCreatorBalance }).eq("id", toCreatorId)
 
     if (creditError) {
       throw creditError

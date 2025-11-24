@@ -121,8 +121,23 @@ export default function Home() {
     initAuth()
 
     // Also listen for focus events to refresh data when page becomes visible
-    const handleFocus = () => {
-      initAuth()
+    const handleFocus = async () => {
+      try {
+        const telegramApp = typeof window !== "undefined" ? window.Telegram?.WebApp : undefined
+        const telegramId = telegramApp?.initDataUnsafe?.user?.id
+        if (telegramId) {
+          const response = await fetch(`/api/user?telegram_id=${telegramId}`)
+          if (response.ok) {
+            const data = await response.json()
+            setUser(data.user)
+            if (data.creator) {
+              setCreator(data.creator)
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error refreshing data:", error)
+      }
     }
     window.addEventListener("focus", handleFocus)
     return () => window.removeEventListener("focus", handleFocus)
