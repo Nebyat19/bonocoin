@@ -24,6 +24,20 @@ Bonocoin lets creators receive support from their audience while giving fans an 
 
 ---
 
+## Screenshots
+
+### Bonocoin Dashboard
+![Bonocoin Dashboard](docs/dashboard-screenshot.png)
+
+### Send Tokens
+![Send Tokens](docs/tokens-screenshot.png)
+
+### Creator Profile
+![Creator Profile](docs/profile-screenshot.png)
+
+---
+
+
 ## How It Works
 
 1. **Sign in via Telegram**  
