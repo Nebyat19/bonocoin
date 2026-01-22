@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bonocoin ₿
 
-## Getting Started
+Support creators, get rewarded, and manage your own tokens—all in one place.  
 
-First, run the development server:
+[Open in Telegram](https://t.me/Bonowerbot?startapp=support_e42846cc86dd173259d1c404)  
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What It Does
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Bonocoin lets creators receive support from their audience while giving fans an easy way to send tokens.  
+- **Buy & send coins** – Support your favorite creators instantly  
+- **Become a creator** – Set up your profile and start receiving tokens  
+- **Withdraw tokens** – Access your funds anytime  
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Features
 
-To learn more about Next.js, take a look at the following resources:
+- **Secure login** – Sign in with your Telegram account  
+- **Privacy first** – All data encrypted and safe  
+- **Instant access** – No passwords or complicated setup needed  
+- **Creator dashboard** – Track supporters, token balances, and transactions  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## How It Works
 
-## Deploy on Vercel
+1. **Sign in via Telegram**  
+2. **Buy or receive Bonocoin tokens**  
+3. **Send support to creators or withdraw your tokens**  
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Try It Out
+
+Support your favorite creators today or set up your profile to start receiving support.  
